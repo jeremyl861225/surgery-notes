@@ -85,7 +85,23 @@
     sentEl.innerHTML = h;
     // 「回主頁」＝把句子清空。它是 .rail 的同層元素，不在句子裡面——
     // 放在句子裡的話，句子換行時它會被擠到自己一整行去。
-    homeEl.hidden = !(st.doctor || st.proc);
+    //
+    // 這裡一定要防 null：PWA 有可能拿到「舊的 index.html ＋ 新的 app.js」
+    // （service worker 換版的空窗期就會這樣），少一個元素不該讓整頁變白。
+    // 拿不到就自己補一個上去。
+    // 用 isConnected 而不是只判 null——變數可能還握著一個已經被拆掉的節點，
+    // 那樣只會把 hidden 設在一個不在畫面上的元素上，按鈕等於消失。
+    if (!homeEl || !homeEl.isConnected) {
+      var rail = document.querySelector('.rail');
+      if (rail) {
+        homeEl = document.createElement('a');
+        homeEl.className = 'homebtn'; homeEl.id = 'home';
+        homeEl.href = '#/'; homeEl.title = '回主頁';
+        homeEl.innerHTML = '回<br>主<br>頁';
+        rail.appendChild(homeEl);
+      }
+    }
+    if (homeEl) homeEl.hidden = !(st.doctor || st.proc);
   }
 
   /* ---------- 首頁：兩軌 ---------- */
@@ -431,12 +447,20 @@
   /* ---------- 主渲染 ---------- */
   function render() {
     readHash();
-    renderSent();
-    if (st.proc && st.vs) viewCompare();
-    else if (st.doctor && st.proc) viewCard();
-    else if (st.doctor) viewDoctor();
-    else if (st.proc) viewProc();
-    else viewHome();
+    try {
+      renderSent();
+      if (st.proc && st.vs) viewCompare();
+      else if (st.doctor && st.proc) viewCard();
+      else if (st.doctor) viewDoctor();
+      else if (st.proc) viewProc();
+      else viewHome();
+    } catch (e) {
+      // 白畫面是最糟的失敗方式——至少要留一條回得去的路。
+      console.error(e);
+      main.innerHTML = '<div class="warnbox">這一頁沒能畫出來（' + esc(e.message)
+        + '）。<a href="#/" style="text-decoration:underline">回主頁</a>再試一次；'
+        + '如果一直這樣，把這個 App 從主畫面移除再重新加入。</div>';
+    }
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', render);
@@ -444,7 +468,16 @@
   $('#ft-count').textContent = D.cards.length + ' 則醫師筆記、'
     + D.procedures.filter(function (p) { return p.general; }).length + ' 則術式通則，'
     + D.doctors.length + ' 位主治。';
-  $('#ft-cloud').textContent = Cloud.enabled() ? '' : '（雲端尚未設定：草稿目前只存在你這台裝置。）';
+  // 雲端連得上但 drafts 表還沒建（SQL 還沒跑）時，要講清楚是哪一種狀況——
+  // 不然使用者會以為是自己沒設定，跑去翻 config.js。
+  if (!Cloud.enabled()) {
+    $('#ft-cloud').textContent = '（雲端尚未設定：草稿目前只存在你這台裝置。）';
+  } else {
+    Cloud.ping().then(function (ok) {
+      $('#ft-cloud').textContent = ok ? '' :
+        '（雲端連得上，但草稿資料表還沒建立——請照 SETUP.md 把 schema.sql 跑一次。目前草稿只存在你這台裝置。）';
+    });
+  }
   Cloud.flush();
   render();
 })();

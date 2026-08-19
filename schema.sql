@@ -1,5 +1,13 @@
 -- 外科手術筆記 · Supabase 資料表
--- 在 Supabase 專案的 SQL Editor 貼上整份執行一次。
+--
+-- 貼到**既有的 todo-app 專案**（dawcpdgonxmhojwonkut）的 SQL Editor 執行一次。
+-- 免費方案一個帳號只有兩個專案，所以草稿寄住在這裡，不另開第三個。
+--
+-- 這份不會動到 todo 的任何東西：
+--   · 只新增 public.drafts 一張表，todo 沒有同名的表
+--   · 政策名稱都掛在 drafts 上，storage 政策也只認 bucket_id = 'draft-photos'
+--   · todo 的 schema.sql 那個 RLS 迴圈寫死了四張表的名字，重跑也不會碰到 drafts
+--   · revoke / grant 全部指名 public.drafts，不是整個 schema
 
 create table if not exists public.drafts (
   id          uuid primary key,

@@ -50,6 +50,13 @@
 
   var Cloud = {
     enabled: function () { return !!cfg(); },
+
+    /** 資料表建好了沒？（schema.sql 沒跑的話 PostgREST 回 404 PGRST205） */
+    ping: function () {
+      if (!cfg()) return Promise.resolve(false);
+      return api('drafts?select=id&limit=1').then(function () { return true; })
+        .catch(function () { return false; });
+    },
     myTokens: function () { return ls(LS_TOKENS, {}); },
     isMine: function (id) { return !!this.myTokens()[id]; },
 

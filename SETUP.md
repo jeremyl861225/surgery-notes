@@ -1,40 +1,29 @@
-# 設定雲端（讓「＋ 新增草稿」存得起來）
+# 設定雲端
 
-沒設定也能用，草稿只是會存在你這台裝置裡、換手機就沒了。要跨裝置就照下面做，大約五分鐘。
+**已經設好了，你只要做一件事**：把 `schema.sql` 貼進 Supabase 執行一次。
 
-## 1. 開一個 Supabase 專案
+## 為什麼是寄住在 todo-app 的專案
 
-到 <https://supabase.com> 註冊並新建一個專案（免費方案就夠）。
-**這個要獨立開一個**，不要跟 todo-app 或 patient-list 共用。
+Supabase 免費方案**一個帳號只給兩個專案**（官方原話：專案上限 "applies across all
+organizations"，所以另開組織也沒用）。你的兩個額度已經給了 todo-app 與 patient-list。
 
-## 2. 建資料表
+所以草稿改成寄住在 **todo-app 那個專案**裡，多開一張 `drafts` 表。這樣做不會多曝露
+任何東西——那組網址與金鑰**早就公開在 todo-app 的 repo 裡**，而 todo 自己的四張表都用
+`auth.uid() = user_id` 鎖著，光有 anon 金鑰一列都讀不到（實測回空陣列）。
 
-專案左邊選 **SQL Editor** → New query → 把 `schema.sql` 整份貼進去 → Run。
+病人清單那個專案刻意不碰。裡面是病人資料，就算加密過也不該跟公開網站共用金鑰。
 
-## 3. 把兩個值填進 `js/config.js`
+## 唯一要做的一步
 
-專案左邊 **Project Settings → API**，抄兩個東西：
+1. 開 <https://supabase.com/dashboard> → 進 **todo-app** 那個專案（`dawcpdgonxmhojwonkut`）
+2. 左邊選 **SQL Editor** → New query
+3. 把 repo 裡 `schema.sql` **整份**貼進去 → 按 Run
+4. 跑完回來重整網站，按「＋ 新增草稿」試存一則
 
-- **Project URL**（長得像 `https://abcdefgh.supabase.co`）→ 填 `SUPABASE_URL`
-- **anon / publishable key**（`sb_publishable_…` 開頭）→ 填 `SUPABASE_KEY`
+跑完會多出：一張 `public.drafts` 表、一個叫 `draft-photos` 的公開圖片 bucket。
+todo 的東西一樣都不會動到（`schema.sql` 開頭有寫為什麼）。
 
-```js
-window.CONFIG = {
-  SUPABASE_URL: "https://abcdefgh.supabase.co",
-  SUPABASE_KEY: "sb_publishable_xxxxxxxxxxxx"
-};
-```
-
-這把 anon 金鑰本來就是設計成公開的，放進版控沒問題——真正的門禁是 `schema.sql` 裡的 RLS 政策。
-**絕對不要**把 `service_role` 那把貼進來，那把可以繞過所有政策。
-
-## 4. 推上去
-
-```bash
-git add js/config.js && git commit -m "設定 Supabase" && git push
-```
-
-## 這樣設定之後的行為
+## 跑完之後的行為
 
 - 任何人打開網站都能寫草稿，不用登入、不用密碼。
 - 草稿一存下去，所有人都看得到。
@@ -43,12 +32,18 @@ git add js/config.js && git commit -m "設定 Supabase" && git push
 
 ## 草稿照片
 
-`schema.sql` 會一併建好一個叫 `draft-photos` 的公開 Storage bucket。
 照片在瀏覽器裡就會先縮到最長邊 1600 px、轉成 WebP 再上傳——
 這一步順便**把 EXIF 洗掉**（GPS 座標與拍攝時間都在裡面）。
 
 上傳前一定要勾「沒有病人的臉或身體」那個確認框，不勾存不下去。
 這只是防手滑，擋不了存心亂傳的人。
+
+## 額度是跟 todo-app 共用的
+
+免費方案整個專案：**資料庫 500 MB、檔案 1 GB、流量 5 GB／月**。
+草稿是純文字，照片壓過大約 100–200 KB 一張，這個用量吃不到零頭。
+
+順帶一提，免費專案**一週沒有任何請求就會被暫停**。兩個 App 共用一個專案反而不容易被停。
 
 ## 想清掉別人亂塞的東西
 
