@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>外科手術筆記</title>
+<meta name="description" content="台大一般外科：哪位醫師開哪台刀，擺位、打洞、器械與步驟的習慣筆記。">
+<meta name="theme-color" content="#efece1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a1512" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hd">
+    <div class="eyebrow">NTUH · General Surgery</div>
+    <h1>外科手術筆記</h1>
+    <div class="sub">誰開哪台刀，擺位、打洞、器械、步驟怎麼做</div>
+  </header>
+</div>
+
+<div class="railzone">
+  <div class="wrap">
+    <div class="rail">
+      <div class="sent" id="sent"></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+
+<div class="wrap">
+  <footer class="ft">
+    <p>資料來源：一般外科住院醫師共享備忘錄「擺位共筆」，<span id="ft-count"></span></p>
+    <p>這裡記的是各位主治醫師的個人偏好，不是診療指引，也不是台大醫院的正式文件。臨床決策請依當台刀的實際情況與主治醫師指示。</p>
+    <p id="ft-cloud"></p>
+  </footer>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+}
+</script>
+</body>
+</html>

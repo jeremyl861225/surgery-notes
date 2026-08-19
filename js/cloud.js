@@ -1,0 +1,121 @@
+/* 草稿的存取層。
+ *
+ * 設計前提（使用者拍板）：寫入完全開放，不用登入、不用密碼，任何人寫的草稿
+ * 所有人都看得到。唯一的保護是刪除——每則草稿產生一把 del_token，只存在
+ * 寫它的那台裝置的 localStorage，刪除時當作 HTTP 標頭送出，由資料庫的 RLS
+ * 政策比對。所以刪除鍵只會出現在寫的人自己的裝置上，別人刪不掉你的東西。
+ *
+ * 離線：寫入先落地 localStorage 佇列，回到有網路時自動補傳。
+ * 未設定 Supabase 時整個退化成純本機模式，並提供「匯出草稿」。
+ */
+(function () {
+  var LS_QUEUE = 'sn.queue';
+  var LS_LOCAL = 'sn.local';     // 尚未（或無法）上雲的草稿
+  var LS_TOKENS = 'sn.tokens';   // {draftId: delToken}
+
+  function cfg() {
+    var c = window.CONFIG || {};
+    return (c.SUPABASE_URL && c.SUPABASE_KEY) ? c : null;
+  }
+  function ls(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function uid() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+      var v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  function token() {
+    var a = crypto.getRandomValues(new Uint8Array(24));
+    return Array.from(a, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  function api(path, opts) {
+    var c = cfg();
+    if (!c) return Promise.reject(new Error('未設定雲端'));
+    opts = opts || {};
+    opts.headers = Object.assign({
+      apikey: c.SUPABASE_KEY,
+      Authorization: 'Bearer ' + c.SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }, opts.headers || {});
+    return fetch(c.SUPABASE_URL + '/rest/v1/' + path, opts).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
+      return r.status === 204 ? null : r.json();
+    });
+  }
+
+  var Cloud = {
+    enabled: function () { return !!cfg(); },
+    myTokens: function () { return ls(LS_TOKENS, {}); },
+    isMine: function (id) { return !!this.myTokens()[id]; },
+
+    /** 讀全部草稿：雲端 + 本機未上傳的，依時間新到舊。 */
+    list: function () {
+      var local = ls(LS_LOCAL, []);
+      if (!cfg()) return Promise.resolve(local.slice().reverse());
+      return api('drafts?select=*&order=created_at.desc').then(function (rows) {
+        var ids = {};
+        rows.forEach(function (r) { ids[r.id] = 1; });
+        var pending = local.filter(function (d) { return !ids[d.id]; });
+        return pending.reverse().concat(rows);
+      }).catch(function () {
+        return local.slice().reverse();   // 離線或連不上：只給本機的
+      });
+    },
+
+    /** 新增一則草稿。無論如何都先落地本機，再嘗試上雲。 */
+    add: function (rec) {
+      var t = token();
+      rec.id = uid();
+      rec.created_at = new Date().toISOString();
+      rec.del_token = t;
+      var tok = ls(LS_TOKENS, {}); tok[rec.id] = t; save(LS_TOKENS, tok);
+      var local = ls(LS_LOCAL, []); local.push(rec); save(LS_LOCAL, local);
+      var q = ls(LS_QUEUE, []); q.push(rec.id); save(LS_QUEUE, q);
+      return this.flush().then(function () { return rec; });
+    },
+
+    /** 把佇列裡的草稿送上雲端；送成功的從本機清單移除。 */
+    flush: function () {
+      if (!cfg() || !navigator.onLine) return Promise.resolve();
+      var q = ls(LS_QUEUE, []); if (!q.length) return Promise.resolve();
+      var local = ls(LS_LOCAL, []);
+      var jobs = q.map(function (id) {
+        var rec = local.filter(function (d) { return d.id === id; })[0];
+        if (!rec) return Promise.resolve(id);
+        return api('drafts', { method: 'POST', body: JSON.stringify(rec) })
+          .then(function () { return id; })
+          .catch(function () { return null; });
+      });
+      return Promise.all(jobs).then(function (done) {
+        var ok = done.filter(Boolean);
+        save(LS_QUEUE, ls(LS_QUEUE, []).filter(function (id) { return ok.indexOf(id) < 0; }));
+        save(LS_LOCAL, ls(LS_LOCAL, []).filter(function (d) { return ok.indexOf(d.id) < 0; }));
+      });
+    },
+
+    /** 刪除自己寫的草稿（del_token 走標頭，由 RLS 比對）。 */
+    remove: function (id) {
+      var tok = ls(LS_TOKENS, {});
+      var t = tok[id];
+      if (!t) return Promise.reject(new Error('這不是這台裝置寫的草稿'));
+      save(LS_LOCAL, ls(LS_LOCAL, []).filter(function (d) { return d.id !== id; }));
+      save(LS_QUEUE, ls(LS_QUEUE, []).filter(function (x) { return x !== id; }));
+      var p = cfg()
+        ? api('drafts?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: { 'x-del-token': t } })
+        : Promise.resolve();
+      return p.then(function () { delete tok[id]; save(LS_TOKENS, tok); });
+    },
+
+    /** 匯出這台裝置寫過、還沒上雲的草稿（雲端沒設定時的備援交付路徑）。 */
+    exportLocal: function () {
+      return JSON.stringify({ format: 'surgery-notes.drafts', version: 1, drafts: ls(LS_LOCAL, []) });
+    }
+  };
+
+  window.addEventListener('online', function () { Cloud.flush(); });
+  window.Cloud = Cloud;
+})();
