@@ -52,6 +52,7 @@ a { color: inherit; text-decoration: none; }
 /* ---------- 句子條 ---------- */
 .railzone { position: sticky; top: 0; z-index: 30; background: var(--scrim); backdrop-filter: saturate(140%) blur(6px); border-bottom: 1px solid var(--line2); }
 .rail { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.rail .sent { flex: 1 1 auto; }
 .sent {
   flex: 1 1 auto; min-width: 0;
   font-family: var(--serif); font-size: clamp(17px, 4.2vw, 26px);
@@ -200,3 +201,53 @@ footer.ft p { margin: 4px 0; }
   border: 1px dashed var(--line2); border-left: 3px solid var(--warn);
   font-size: 12.5px; line-height: 1.6; color: var(--dim); white-space: normal;
 }
+
+/* ---------- 回主頁 ---------- */
+.homebtn {
+  flex: 0 0 auto; align-self: center;
+  min-height: 44px; min-width: 30px; padding: 6px 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--sans); font-size: 11px; line-height: 1.25; letter-spacing: .02em;
+  color: var(--dim); border: 1px solid var(--line2); text-align: center;
+}
+.homebtn[hidden] { display: none; }
+.homebtn:hover { color: var(--fg); border-color: var(--fg); background: var(--shade); }
+
+/* ---------- 醫師方磚（依病房分群） ---------- */
+.wardgrp { margin-bottom: 14px; }
+.wardh {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; color: var(--dim);
+  padding: 4px 0 5px; border-bottom: 1px solid var(--line); margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.wardh .wn { letter-spacing: .04em; }
+.docgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
+.doc {
+  min-height: 46px; padding: 4px 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  border: 1px solid var(--line);
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.doc:hover { background: var(--shade); border-color: var(--fg); }
+.doc .dn { font-family: var(--serif); font-size: 16px; letter-spacing: .04em; white-space: nowrap; }
+.doc.hasgen { border-left: 3px double var(--line2); padding-left: 8px; }
+.doc.hasgen:hover { border-left-color: var(--fg); }
+.doc .dc { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+/* ---------- 草稿照片與上傳表單 ---------- */
+.draft .dphoto { display: block; max-width: 100%; height: auto; margin: 8px 0 0; border: 1px solid var(--line); background: #fff; cursor: zoom-in; }
+input[type=file] { width: 100%; font-family: var(--sans); font-size: 13px; padding: 8px 0; }
+#photobox { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
+#photobox .pic { margin: 0; border: 1px solid var(--line2); }
+#photobox .pic img { display: block; width: 100%; height: 110px; object-fit: cover; background: #fff; }
+#photobox .pic figcaption {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  font-family: var(--mono); font-size: 10px; color: var(--dim); padding: 3px 6px;
+}
+#photobox .pic .rm { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--hot); min-height: 28px; padding: 0 4px; }
+label.okline {
+  display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 0; padding: 10px 12px;
+  border: 1px solid var(--warn); border-left: 3px solid var(--warn);
+  font-size: 13px; line-height: 1.6; cursor: pointer;
+}
+label.okline input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--warn); }

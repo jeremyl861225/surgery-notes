@@ -12,6 +12,7 @@
   var LS_QUEUE = 'sn.queue';
   var LS_LOCAL = 'sn.local';     // 尚未（或無法）上雲的草稿
   var LS_TOKENS = 'sn.tokens';   // {draftId: delToken}
+  var BUCKET = 'draft-photos';
 
   function cfg() {
     var c = window.CONFIG || {};
@@ -52,11 +53,19 @@
     myTokens: function () { return ls(LS_TOKENS, {}); },
     isMine: function (id) { return !!this.myTokens()[id]; },
 
-    /** 讀全部草稿：雲端 + 本機未上傳的，依時間新到舊。 */
-    list: function () {
-      var local = ls(LS_LOCAL, []);
+    /** 讀草稿：雲端 + 本機未上傳的，依時間新到舊。
+     *  filter 交給資料庫做，不要整包抓回來再前端過濾——草稿帶照片以後會很重。 */
+    list: function (filter) {
+      filter = filter || {};
+      var local = ls(LS_LOCAL, []).filter(function (d) {
+        return (!filter.proc || d.procedure === filter.proc)
+            && (!filter.doctor || d.doctor === filter.doctor);
+      });
       if (!cfg()) return Promise.resolve(local.slice().reverse());
-      return api('drafts?select=*&order=created_at.desc').then(function (rows) {
+      var q = 'drafts?select=id,created_at,doctor,procedure,ward,approach,author,fields,photos&order=created_at.desc';
+      if (filter.proc) q += '&procedure=eq.' + encodeURIComponent(filter.proc);
+      if (filter.doctor) q += '&doctor=eq.' + encodeURIComponent(filter.doctor);
+      return api(q).then(function (rows) {
         var ids = {};
         rows.forEach(function (r) { ids[r.id] = 1; });
         var pending = local.filter(function (d) { return !ids[d.id]; });
@@ -66,16 +75,46 @@
       });
     },
 
+    /** 把一張壓好的圖送上 Supabase Storage，回傳公開網址。
+     *  沒設定雲端時退化成 data URL（只有本機看得到，這也是預期行為）。 */
+    upload: function (blob, draftId, i) {
+      var c = cfg();
+      if (!c) return new Promise(function (res) {
+        var fr = new FileReader();
+        fr.onload = function () { res(fr.result); };
+        fr.readAsDataURL(blob);
+      });
+      var path = draftId + '/' + i + '.webp';
+      return fetch(c.SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path, {
+        method: 'POST',
+        headers: { apikey: c.SUPABASE_KEY, Authorization: 'Bearer ' + c.SUPABASE_KEY, 'Content-Type': 'image/webp' },
+        body: blob
+      }).then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { throw new Error('照片上傳失敗 ' + r.status + ' ' + t); });
+        return c.SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path;
+      });
+    },
+
     /** 新增一則草稿。無論如何都先落地本機，再嘗試上雲。 */
-    add: function (rec) {
-      var t = token();
+    add: function (rec, pics) {
+      var self = this, t = token();
       rec.id = uid();
       rec.created_at = new Date().toISOString();
       rec.del_token = t;
+      rec.photos = [];
       var tok = ls(LS_TOKENS, {}); tok[rec.id] = t; save(LS_TOKENS, tok);
-      var local = ls(LS_LOCAL, []); local.push(rec); save(LS_LOCAL, local);
-      var q = ls(LS_QUEUE, []); q.push(rec.id); save(LS_QUEUE, q);
-      return this.flush().then(function () { return rec; });
+      var ups = (pics || []).map(function (b, i) { return self.upload(b, rec.id, i); });
+      return Promise.all(ups).then(function (urls) {
+        rec.photos = urls;
+      }).catch(function (err) {
+        // 照片上傳失敗不能連文字一起丟掉——文字照存，照片下次再說。
+        console.warn(err);
+        rec.photos = [];
+      }).then(function () {
+        var local = ls(LS_LOCAL, []); local.push(rec); save(LS_LOCAL, local);
+        var q = ls(LS_QUEUE, []); q.push(rec.id); save(LS_QUEUE, q);
+        return self.flush().then(function () { return rec; });
+      });
     },
 
     /** 把佇列裡的草稿送上雲端；送成功的從本機清單移除。 */

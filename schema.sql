@@ -10,8 +10,12 @@ create table if not exists public.drafts (
   approach    text,
   author      text,
   fields      jsonb not null default '{}'::jsonb,
+  photos      jsonb not null default '[]'::jsonb,
   del_token   text not null
 );
+
+-- 既有資料表要補這一欄的話（第一次建表可略）：
+alter table public.drafts add column if not exists photos jsonb not null default '[]'::jsonb;
 
 create index if not exists drafts_procedure_idx on public.drafts (procedure);
 create index if not exists drafts_doctor_idx    on public.drafts (doctor);
@@ -38,6 +42,25 @@ revoke update on public.drafts from anon;
 
 -- del_token 不可被讀出來，否則任何人都能拿去刪別人的草稿。
 revoke select (del_token) on public.drafts from anon;
-grant select (id, created_at, doctor, procedure, ward, approach, author, fields)
+grant select (id, created_at, doctor, procedure, ward, approach, author, fields, photos)
   on public.drafts to anon;
 grant insert, delete on public.drafts to anon;
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 草稿照片：放 Storage，不放資料表（base64 塞進 jsonb 會讓每次讀草稿都下載整包）
+-- ─────────────────────────────────────────────────────────────
+insert into storage.buckets (id, name, public)
+  values ('draft-photos', 'draft-photos', true)
+  on conflict (id) do update set public = true;
+
+-- 讀：公開。寫：跟草稿一樣完全開放。
+drop policy if exists "photos read" on storage.objects;
+create policy "photos read" on storage.objects for select
+  using (bucket_id = 'draft-photos');
+
+drop policy if exists "photos insert" on storage.objects;
+create policy "photos insert" on storage.objects for insert
+  with check (bucket_id = 'draft-photos');
+
+-- 照片不給改、不給刪（刪草稿不會連帶刪圖，要清請到 Supabase 的 Storage 後台）。

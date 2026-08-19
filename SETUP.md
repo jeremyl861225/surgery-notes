@@ -41,6 +41,16 @@ git add js/config.js && git commit -m "設定 Supabase" && git push
 - **刪除鍵只會出現在寫的人自己的裝置上**——每則草稿有一把 `del_token`，只存在寫它的瀏覽器裡。
 - 沒網路時照樣能寫，草稿先存本機，有網路自動補傳。
 
+## 草稿照片
+
+`schema.sql` 會一併建好一個叫 `draft-photos` 的公開 Storage bucket。
+照片在瀏覽器裡就會先縮到最長邊 1600 px、轉成 WebP 再上傳——
+這一步順便**把 EXIF 洗掉**（GPS 座標與拍攝時間都在裡面）。
+
+上傳前一定要勾「沒有病人的臉或身體」那個確認框，不勾存不下去。
+這只是防手滑，擋不了存心亂傳的人。
+
 ## 想清掉別人亂塞的東西
 
-到 Supabase 的 **Table Editor → drafts**，直接刪那一列。
+- 文字：**Table Editor → drafts**，直接刪那一列。
+- 照片：**Storage → draft-photos**，刪那個資料夾（刪草稿不會連帶刪圖）。

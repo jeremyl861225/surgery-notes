@@ -11,7 +11,7 @@
 (function () {
   var D = window.DATA;
   var $ = function (s, r) { return (r || document).querySelector(s); };
-  var main = $('#main'), sentEl = $('#sent');
+  var main = $('#main'), sentEl = $('#sent'), homeEl = $('#home');
 
   var FIELDS = [
     ['position',    'Position',        '擺位'],
@@ -20,6 +20,7 @@
     ['steps',       'Key steps',       '重要步驟'],
     ['anastomosis', 'Anastomosis',     '吻合方式'],
     ['drain',       'Drain',           '引流放置'],
+    ['closure',     'Wound closure',   '傷口關法'],
     ['dressing',    'Dressing',        '傷口包紮'],
     ['billing',     'NHI code',        '健保申報碼'],
     ['note',        'Notes',           '備註']
@@ -82,20 +83,38 @@
       ? '<a class="chip f-p" href="' + href({ proc: null }) + '">' + esc(p.en) + '<span class="x">×</span></a>'
       : '<a class="slot f-p" href="#/">〔哪台刀〕</a>';
     sentEl.innerHTML = h;
+    // 「回主頁」＝把句子清空。它是 .rail 的同層元素，不在句子裡面——
+    // 放在句子裡的話，句子換行時它會被擠到自己一整行去。
+    homeEl.hidden = !(st.doctor || st.proc);
   }
 
   /* ---------- 首頁：兩軌 ---------- */
   function viewHome() {
     var h = '';
-    h += '<div class="sec"><div class="sec-t"><span>先選醫師</span><span class="n">' + D.doctors.length + ' 位</span></div><div class="lst">';
+    // 醫師依病房分群、排成方磚——20 位排成一直行太長，手機要滑三四屏才看得完。
+    var byWard = {}, order = [];
     D.doctors.forEach(function (d) {
-      var n = cardsOfDoc(d.name).length;
-      h += '<a class="li" href="#/d/' + encodeURIComponent(d.name) + '/"><span class="main"><span class="t">' + esc(d.name) + '</span>'
-        + '<span class="s">' + d.wards.map(function (w) { return '<span class="tag w">' + esc(w) + '</span>'; }).join('')
-        + (d.general && Object.keys(d.general).length ? '<span class="tag">有通則</span>' : '') + '</span></span>'
-        + '<span class="cnt">' + n + ' 台</span></a>';
+      var w = (d.wards && d.wards[0]) || '未分';
+      if (!byWard[w]) { byWard[w] = []; order.push(w); }
+      byWard[w].push(d);
     });
-    h += '</div></div>';
+    order.sort();
+    h += '<div class="sec"><div class="sec-t"><span>先選醫師</span><span class="n">' + D.doctors.length + ' 位</span></div>';
+    order.forEach(function (w) {
+      h += '<div class="wardgrp"><div class="wardh">' + esc(w) + '<span class="wn">' + byWard[w].length + ' 位</span></div><div class="docgrid">';
+      byWard[w].forEach(function (d) {
+        var n = cardsOfDoc(d.name).length;
+        var hasGen = d.general && Object.keys(d.general).length;
+        // 「有通則」不用符號標——◦ 接在中文名字後面看起來像句號。
+        // 改用左側雙線，跟句子條的面向記號同一套語言。
+        h += '<a class="doc' + (hasGen ? ' hasgen' : '') + '" href="#/d/' + encodeURIComponent(d.name) + '/"'
+          + (hasGen ? ' title="這位醫師有歸納出通則"' : '') + '>'
+          + '<span class="dn">' + esc(d.name) + '</span>'
+          + '<span class="dc">' + n + '</span></a>';
+      });
+      h += '</div></div>';
+    });
+    h += '<p class="note-line">數字是收錄的刀數；左邊有雙線的表示這位醫師有歸納出通則。</p></div>';
     h += '<div class="sec"><div class="sec-t"><span>或先選一台刀</span><span class="n">' + D.procedures.length + ' 種</span></div><div class="lst">';
     D.procedures.forEach(function (p) {
       var n = cardsOfProc(p.key).length;
@@ -265,16 +284,31 @@
     main.innerHTML = h;
   }
 
+  /* ---------- 照片 ---------- */
+  /* 重新編碼有兩個作用：把 3–4 MB 的手機照壓到幾百 KB，
+     以及**洗掉 EXIF**（GPS 座標與拍攝時間都在裡面，那是院內位置與時間）。 */
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var w = img.width, h = img.height, M = 1600;
+        if (Math.max(w, h) > M) { var r = M / Math.max(w, h); w = Math.round(w * r); h = Math.round(h * r); }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        cv.toBlob(function (b) { b ? res(b) : rej(new Error('轉檔失敗')); }, 'image/webp', 0.8);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('這個檔案讀不出圖片')); };
+      img.src = url;
+    });
+  }
+
   /* ---------- 草稿 ---------- */
   function loadDrafts(filter) {
     var box = $('#drafts'); if (!box) return;
     box.innerHTML = '<div class="empty-hint">讀取草稿…</div>';
-    Cloud.list().then(function (rows) {
-      rows = rows.filter(function (r) {
-        if (filter.proc && r.procedure !== filter.proc) return false;
-        if (filter.doctor && r.doctor !== filter.doctor) return false;
-        return true;
-      });
+    Cloud.list(filter).then(function (rows) {
       if (!rows.length) { box.innerHTML = ''; return; }
       var h = '<div class="sec"><div class="sec-t"><span>草稿</span><span class="n">' + rows.length + ' 則</span></div>';
       rows.forEach(function (r) {
@@ -287,6 +321,9 @@
         FIELDS.forEach(function (f) {
           var v = (r.fields || {})[f[0]]; if (!v) return;
           h += '<div class="dfield"><b>' + esc(f[2]) + '</b><div>' + esc(v) + '</div></div>';
+        });
+        (r.photos || []).forEach(function (u) {
+          h += '<img class="dphoto" loading="lazy" src="' + esc(u) + '" alt="草稿附圖">';
         });
         h += '</div>';
       });
@@ -310,11 +347,36 @@
     FIELDS.forEach(function (f) {
       h += '<label class="f"><span>' + esc(f[1]) + ' <span class="zh">' + esc(f[2]) + '</span></span><textarea id="f-' + f[0] + '"></textarea></label>';
     });
+    h += '<label class="f"><span>照片 <span class="zh">選填，可多張</span></span>'
+      + '<input type="file" id="f-photo" accept="image/*" multiple></label>';
+    h += '<div id="photobox"></div>';
+    h += '<label class="okline"><input type="checkbox" id="f-ok"> '
+      + '<span>我確認要上傳的照片裡<b>沒有病人的臉、身體或任何認得出是誰的東西</b>，也沒有拍到螢幕上的病人資料。</span></label>';
     h += '<div class="btnrow"><button class="btn solid" data-save="1">存起來</button><button class="btn" data-cancel="1">取消</button></div>';
     if (!Cloud.enabled()) h += '<div class="warnbox">雲端還沒設定，草稿只會存在這台裝置。設定方式見 repo 的 SETUP.md。</div>';
     h += '</div>';
     el.innerHTML = h;
     document.body.appendChild(el);
+    var pics = [];   // 已經壓好、等著送出的 Blob
+    $('#f-photo', el).addEventListener('change', function (ev) {
+      var box = $('#photobox', el);
+      Array.prototype.forEach.call(ev.target.files, function (file) {
+        shrink(file).then(function (b) {
+          pics.push(b);
+          var fig = document.createElement('figure');
+          fig.className = 'pic';
+          fig.innerHTML = '<img src="' + URL.createObjectURL(b) + '" alt="">'
+            + '<figcaption>' + Math.round(b.size / 1024) + ' KB'
+            + '<button type="button" class="rm">移除</button></figcaption>';
+          fig.querySelector('.rm').addEventListener('click', function () {
+            pics.splice(pics.indexOf(b), 1); fig.remove();
+          });
+          box.appendChild(fig);
+        }).catch(function (err) { alert(file.name + '：' + err.message); });
+      });
+      ev.target.value = '';
+    });
+
     el.addEventListener('click', function (e) {
       if (e.target.closest('[data-cancel]')) { el.remove(); return; }
       if (e.target.closest('[data-save]')) {
@@ -329,10 +391,19 @@
           var v = $('#f-' + f[0], el).value.trim();
           if (v) { rec.fields[f[0]] = v; any = true; }
         });
-        if (!any) { alert('至少寫一個欄位。'); return; }
+        if (!any && !pics.length) { alert('至少寫一個欄位，或放一張照片。'); return; }
+        if (pics.length && !$('#f-ok', el).checked) {
+          alert('要上傳照片的話，請先勾下面那個確認。');
+          $('#f-ok', el).scrollIntoView({ block: 'center' });
+          return;
+        }
         e.target.disabled = true;
-        Cloud.add(rec).then(function () { el.remove(); render(); })
-          .catch(function (err) { alert('存不起來：' + err.message); e.target.disabled = false; });
+        e.target.textContent = pics.length ? '上傳中…' : '存起來';
+        Cloud.add(rec, pics).then(function () { el.remove(); render(); })
+          .catch(function (err) {
+            alert('存不起來：' + err.message);
+            e.target.disabled = false; e.target.textContent = '存起來';
+          });
       }
     });
   }
@@ -347,7 +418,7 @@
         .catch(function (err) { alert('刪不掉：' + err.message); });
       return;
     }
-    var img = e.target.closest('.fld img, .cmp img');
+    var img = e.target.closest('.fld img, .cmp img, .draft .dphoto');
     if (img) {
       var lb = document.createElement('div');
       lb.className = 'lb';
