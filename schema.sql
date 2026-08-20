@@ -45,14 +45,22 @@ drop policy if exists "delete with token" on public.drafts;
 create policy "delete with token" on public.drafts for delete
   using (del_token = ((current_setting('request.headers', true))::json ->> 'x-del-token'));
 
--- 不允許改：草稿只有新增與刪除兩種動作。
-revoke update on public.drafts from anon;
+-- ⚠ del_token 絕對不可以被讀出來，否則任何人都能撈走全部的刪除鑰匙，
+-- 把別人的草稿刪光。
+--
+-- 這裡有一個 PostgreSQL 的陷阱，第一版寫錯過：
+--   revoke select (del_token) ... 「擋不掉」表級的 SELECT 授權。
+-- Supabase 建表時的預設權限給的是**整張表**的 SELECT，涵蓋所有欄位；
+-- 針對單一欄位 revoke 不會在上面打洞，結果 del_token 照樣讀得到（實測確認）。
+-- 正確做法是先把表級 SELECT 整個收回，再逐欄 grant 回去。
+revoke select, update, insert, delete on public.drafts from anon, authenticated;
 
--- del_token 不可被讀出來，否則任何人都能拿去刪別人的草稿。
-revoke select (del_token) on public.drafts from anon;
 grant select (id, created_at, doctor, procedure, ward, approach, author, fields, photos)
   on public.drafts to anon;
 grant insert, delete on public.drafts to anon;
+-- 不給 update：草稿只有新增與刪除兩種動作。
+-- authenticated 一個權限都不給——這個專案還住著 todo-app，它的登入使用者
+-- 沒有理由讀得到這裡的東西。本站一律以 anon 身分連線。
 
 
 -- ─────────────────────────────────────────────────────────────
