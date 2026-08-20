@@ -43,8 +43,17 @@
       'Content-Type': 'application/json'
     }, opts.headers || {});
     return fetch(c.SUPABASE_URL + '/rest/v1/' + path, opts).then(function (r) {
-      if (!r.ok) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
-      return r.status === 204 ? null : r.json();
+      if (!r.ok) {
+        return r.text().then(function (t) {
+          var e = new Error(r.status + ' ' + t);
+          e.status = r.status;
+          throw e;
+        });
+      }
+      // 新增成功回的是 201 ＋**空白內容**（沒帶 Prefer: return=representation），
+      // 刪除成功回 204。無條件 r.json() 會在空 body 上丟例外，
+      // 結果明明存進去了卻被當成失敗、留在佇列裡每次開頁重送一次。
+      return r.text().then(function (t) { return t ? JSON.parse(t) : null; });
     });
   }
 
@@ -134,7 +143,11 @@
         if (!rec) return Promise.resolve(id);
         return api('drafts', { method: 'POST', body: JSON.stringify(rec) })
           .then(function () { return id; })
-          .catch(function () { return null; });
+          .catch(function (err) {
+            // 409 ＝主鍵重複，代表這筆其實早就進去了（例如上一輪誤判成失敗）。
+            // 這種也要當成功收掉，否則佇列永遠清不乾淨。
+            return err && err.status === 409 ? id : null;
+          });
       });
       return Promise.all(jobs).then(function (done) {
         var ok = done.filter(Boolean);
