@@ -4,13 +4,14 @@
  * 這支只能刪自己前綴的快取，絕不可以 keys() 全清（會把別的 App 弄壞）。
  */
 const PREFIX = 'surgery-notes-';
-const CACHE = PREFIX + 'v2';
+const CACHE = PREFIX + 'v3';
 const SHELL = [
   './', './index.html',
   './css/app.css',
   './js/data.js', './js/config.js', './js/cloud.js', './js/app.js',
   './manifest.webmanifest',
-  './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'
+  './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png',
+  './icons/icon-maskable-192.png', './icons/icon-maskable-512.png'
 ];
 
 self.addEventListener('install', e => {
