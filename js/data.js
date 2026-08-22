@@ -13,30 +13,14 @@ window.DATA = {
    "wards": [
     "9A"
    ],
-   "general": {
-    "position": [
-     {
-      "t": "胸約",
-      "n": 2,
-      "of": 2
-     }
-    ]
-   }
+   "general": {}
   },
   {
    "name": "吳明勳",
    "wards": [
     "9A"
    ],
-   "general": {
-    "position": [
-     {
-      "t": "雙手收",
-      "n": 2,
-      "of": 2
-     }
-    ]
-   }
+   "general": {}
   },
   {
    "name": "吳經閔",
@@ -57,27 +41,7 @@ window.DATA = {
    "wards": [
     "9B"
    ],
-   "general": {
-    "position": [
-     {
-      "t": "沒有大單",
-      "n": 2,
-      "of": 2
-     },
-     {
-      "t": "雙手開",
-      "n": 2,
-      "of": 2
-     }
-    ],
-    "instrument": [
-     {
-      "t": "手控電刀",
-      "n": 2,
-      "of": 2
-     }
-    ]
-   }
+   "general": {}
   },
   {
    "name": "李柏居",
@@ -99,27 +63,7 @@ window.DATA = {
    "wards": [
     "9C"
    ],
-   "general": {
-    "position": [
-     {
-      "t": "胸約",
-      "n": 2,
-      "of": 2
-     },
-     {
-      "t": "雙手收",
-      "n": 2,
-      "of": 2
-     }
-    ],
-    "instrument": [
-     {
-      "t": "手控電刀",
-      "n": 2,
-      "of": 2
-     }
-    ]
-   }
+   "general": {}
   },
   {
    "name": "林洋正",
@@ -234,27 +178,7 @@ window.DATA = {
    "wards": [
     "9B"
    ],
-   "general": {
-    "position": [
-     {
-      "t": "沒有大單",
-      "n": 2,
-      "of": 2
-     },
-     {
-      "t": "雙手開",
-      "n": 2,
-      "of": 2
-     }
-    ],
-    "instrument": [
-     {
-      "t": "手控電刀",
-      "n": 2,
-      "of": 2
-     }
-    ]
-   }
+   "general": {}
   },
   {
    "name": "黃約翰",
@@ -662,9 +586,9 @@ window.DATA = {
    "title": "#陳建嘉 #李志元 #9B #PD_tube_implantation",
    "modified": "2026年7月8日 星期三 10:07:27",
    "fields": {
-    "position": "",
+    "position": "雙手開\n沒有大單",
     "incision": "[[photo]]\n[[img:陳建嘉-李志元-pd_tube_implantation-2.webp]]",
-    "instrument": "…",
+    "instrument": "手控電刀 \n…",
     "steps": "沿著預設劃刀和鋼針走的tunnel方向打local\n劃約三指幅的垂直傷口，小肌勾幫忙，一路開到fascia，pean幫忙撥開rectus muscle\n腹膜用組織剪剪開，拿三支pean夾洞口三個角\n5/8 1-0藉pean夾的三個角，縫purse string\nPD管中間放stylet，放進腹腔裡，往病人腳側走。拿灌滿水的空針（不要針心）接管子，確定入水順，再把空針+管子放到側腹低處，拿彎盆接水，確定出水順\n把purse string綁起來，注意cuff要盡量靠近腹膜洞口。綁完後只剪帶針那端的線，另一端pean吊著\n再拿一支pean，從catheter處往頭側製造soft tissue的tunnel。拿電刀電pean tip，大right angle從tip端伸進去，把catheter送給right angle再夾出來\n把管子的distal端接到鋼針上，用silk綁住接合處，不要剪線\n鋼針製造soft tissue tunnel，沿著剛才打local的tract往側腹走，要出體表的時候拿線剪的指環幫忙讓針尖突出體表。整個鋼針拉出體表，確定cuff還在皮下\n剪斷catheter-鋼針接合處，拿金屬轉接頭（有兩顆）固定在catheter distal端，然後給腹膜透析組的學姐\n刷手會剪很多條狀surgicel，幾條繞在catheter出體表處，幾條鋪在入腹腔處\n應該是這時候把吊著的5/8剪掉。再拿5/8剩線，horizontal matress關fascia，再關subcutaneous\nNylon 3-0關skin",
     "anastomosis": "",
     "drain": "",
@@ -686,9 +610,9 @@ window.DATA = {
    "title": "#陳建嘉 #李志元 #9B #PD_tube_removal",
    "modified": "2026年7月8日 星期三 09:36:19",
    "fields": {
-    "position": "管子露出一點點就好（一開始先拿綠單蓋住整個管子）",
+    "position": "雙手開\n沒有大單\n管子露出一點點就好（一開始先拿綠單蓋住整個管子）",
     "incision": "[[img:陳建嘉-李志元-pd_tube_removal-1.webp]]",
-    "instrument": "…",
+    "instrument": "手控電刀 \n…",
     "steps": "先摸peritoneal cuff的位置。應該會在垂直傷口(1) 的下方，打完local之後可以照previous incision scar下刀（劃開上半段就好，通常傷口不用太大）\n一邊往下dissect一邊摸，確認管子的位置。\n管子露出來之後拿pean夾兩端，中間用線剪剪斷。\n往subcutaneous端的pean可以放開，往peritoneum端用左手拿著輕微保持tension（太用力rectus muscle可能會流血），右手拿電刀沿著cuff電，不要電到讓fascia變很大一個洞\n整圈電開之後catheter拿出來，用5/8圓針縫fascia（一針horizontal mattress）\n5/8圓針縫subcutaneous fat，一針\nNylon關skin，兩針\n\n接下來處理subcutaneous 端。先用pean夾住catheter，遠端剪掉當污染區\n下刀沿著管子做小小的橫向的fusiform incision（2）\n電刀沿著cuff電開到整個catheter可以移除\n直接用nylon大針關兩針",
     "anastomosis": "",
     "drain": "",
@@ -711,7 +635,7 @@ window.DATA = {
    "title": "#吳健暉 #9A #Scope #Appendectomy",
    "modified": "2026年6月15日 星期一 10:05:45",
    "fields": {
-    "position": "右手開\nOn foley",
+    "position": "右手開\n胸約\nOn foley",
     "incision": "[[img:吳健暉-appendectomy-1.webp]]",
     "instrument": "手控電刀 \nEthicon GIA 藍釘\nHook\nEndobag\nClip ML",
     "steps": "",
@@ -811,8 +735,8 @@ window.DATA = {
    "title": "#黃約翰 #9C #scope #Colectomy",
    "modified": "2026年4月28日 星期二 15:53:09",
    "fields": {
-    "position": "Scope 雙手收\nRight-supine\nLeft/AR/LAR-lithotomy\n一定要白布膠胸約，John會玩海盜船\n\n打洞\n肚臍劃在左或右（要拿檢體出來會沿著傷口上下延伸）\nRight hemi: \n右下McBurney 10\n左下 5\n鏡子放右下\n\nAR:\n右上5\n右下10\n鏡子放肚臍（從肚臍右邊進去）\n[[photo]]",
-    "incision": "",
+    "position": "Scope 雙手收\nRight-supine\nLeft/AR/LAR-lithotomy\n一定要白布膠胸約，John會玩海盜船",
+    "incision": "肚臍劃在左或右（要拿檢體出來會沿著傷口上下延伸）\nRight hemi: \n右下McBurney 10\n左下 5\n鏡子放右下\n\nAR:\n右上5\n右下10\n鏡子放肚臍（從肚臍右邊進去）\n[[photo]]",
     "instrument": "",
     "steps": "",
     "anastomosis": "",
@@ -836,7 +760,7 @@ window.DATA = {
    "title": "#吳健暉 #9A #scope #DPSP",
    "modified": "2026年4月21日 星期二 22:00:14",
    "fields": {
-    "position": "雙手開\n架Kent （可能轉open）\n[[img:吳健暉-dpsp-1.webp]]",
+    "position": "雙手開\n架Kent （可能轉open）\n胸約\n[[img:吳健暉-dpsp-1.webp]]",
     "incision": "[[img:吳健暉-dpsp-2.webp]]\n說是8公分，但看病人腹部多長多寬大概吧🤔\n藍10/5 operator\n綠10/5 1st assistant",
     "instrument": "",
     "steps": "",
@@ -1033,9 +957,9 @@ window.DATA = {
    "title": "#林本仁 #9C #Robotic #LAR #TME",
    "modified": "2025年10月16日 星期四 19:25:33",
    "fields": {
-    "position": "架腳 \n肩墊\n\n消毒鋪單時先套左腳的綠單，本仁老師會自己挪電視的位置\n\n[[img:林本仁-lar-tme-1.webp]]",
+    "position": "雙手收 \n架腳 \n胸約\n肩墊\n\n消毒鋪單時先套左腳的綠單，本仁老師會自己挪電視的位置\n\n[[img:林本仁-lar-tme-1.webp]]",
     "incision": "[[img:林本仁-lar-tme-2.webp]]",
-    "instrument": "腳控電湯匙\nBlunt tip ligasure\nDocking後\n1號: fenestrated bipolar forceps\n2號: 鏡子\n3號: permanent cautery spatula\n4號: prograsp",
+    "instrument": "手控電刀\n腳控電湯匙\nBlunt tip ligasure\nDocking後\n1號: fenestrated bipolar forceps\n2號: 鏡子\n3號: permanent cautery spatula\n4號: prograsp",
     "steps": "Laparoscope\n先打4個12 mm trocar\nLeft side colon mobilization\nIMV用clip或白釘\nArtery用白釘\nRobotic\n打8 mm 鐵trocar\n124號12 mm trocar裡塞8 mm鐵trocar\nDocking\nDenonvillier's fascia dissection（助手拿腸鉗或長suction）\n(TME)\nLaparoscope\n45黑釘*3，斷rectum\nMidline extend，wound protector\n檢體抓出來，ligate artery（病人端3個tie，檢體端2個tie）\n長蚊鉗夾住colon，電開，檢體下\n斷端三個角帶圓針細，不綁，pean吊起來\n2(?)-0 prolene 一頭針，pean夾另一頭，縫purse string\nAnvil放進去，purse string束起來，silk抽掉\n大K夾著anvil，老師把多的油修掉\n老師釣魚粗再綁一次anvil\n腸子丟回去，wound protector接5半手套\nLaparoscope（助手去雙腳中間）\n先手進去anus摸stump\nSizer * 3（前面兩個sizer進去時出入十次dilate）\nEEA（撒tissel 4 mL）\n（可能放anal tube）\n鋪surgiwrap\n放rubber drain（左道格）\n關傷口\n\n如果做ileostomy，本仁習慣peritonization釘四針，開花釘六針，proximal放在上面",
     "anastomosis": "",
     "drain": "",
@@ -1181,7 +1105,7 @@ window.DATA = {
    "title": "#吳明勳 #9A #Transoral #Thyroid",
    "modified": "2025年9月29日 星期一 12:46:38",
    "fields": {
-    "position": "頭要包起來\n鋪單的時候兩片大OP site貼頭，綠單先鋪頭側再往腳鋪\n\n[[photo]]",
+    "position": "雙手收\n頭要包起來\n鋪單的時候兩片大OP site貼頭，綠單先鋪頭側再往腳鋪\n\n[[photo]]",
     "incision": "",
     "instrument": "Scope\n外面電刀\nHook\nligasure (maryland)\nSuction-irrigation\nSuction濾煙（接在病人右邊的trocar）\nCO2\nNerve monitor (紅線)（走病人左邊）\n袋子架病人右手邊\n\n[[photo]]",
     "steps": "",
@@ -1330,7 +1254,7 @@ window.DATA = {
    "title": "#陳坤源 #吳明勳 #9A #Open #Thyroidectomy",
    "modified": "2025年8月28日 星期四 08:23:15",
    "fields": {
-    "position": "換枕頭（neck extension）\n頭架歪向麻醉科\n中單架國旗\n神經刺激器走病人左手邊\n先拿酒棉消，插完拿3M貼著固定\nMedtronic兩根針的：插在胸骨上\nInomed一根針一個貼片的：插在胸口，貼在左肩，或兩個都放左肩\n消毒消下巴到nipple，用chlorhexidine\n老師喜歡大燈在正上方，小燈斜的照進去\n鋪完單後兩邊脖子塞紗布\n[[img:陳坤源-吳明勳-thyroidectomy-1.webp]]",
+    "position": "雙手收 \n換枕頭（neck extension）\n頭架歪向麻醉科\n中單架國旗\n神經刺激器走病人左手邊\n先拿酒棉消，插完拿3M貼著固定\nMedtronic兩根針的：插在胸骨上\nInomed一根針一個貼片的：插在胸口，貼在左肩，或兩個都放左肩\n消毒消下巴到nipple，用chlorhexidine\n老師喜歡大燈在正上方，小燈斜的照進去\n鋪完單後兩邊脖子塞紗布\n[[img:陳坤源-吳明勳-thyroidectomy-1.webp]]",
     "incision": "坤源：約六公分的傷口\n明勳：傷口越劃越小",
     "instrument": "手控電刀 \nCovidien ligasure handpieces\nClip medium\n坤源：多Bipolar\nInterceed 3*4 inch or Berrigel\nMedtronic or Inomed 神經刺激器",
     "steps": "v906 vicryl\n5-0 monocryl\n美容膠\n坤源：散紗+宜拉；明勳：散紗 + 3M\n買帳：坤源副甲狀腺全切 82019B00; Transoral買的和一般甲狀腺切除一樣\nPara部分切，坤源：鈣片1# TID, vit D 2# QD\niPTH: 坤源通常pre/10, 明勳通常pre/5/10",
@@ -1430,9 +1354,9 @@ window.DATA = {
    "title": "#林本仁 #9C #Robo #LAR",
    "modified": "2025年7月20日 星期日 17:16:52",
    "fields": {
-    "position": "架腳 （大腿水平於地面，以避免擋到手術空間）\n[[photo]]\n要墊肩（因為要頭低腳高，避免住上滑；各種線要塞進凹槽）\n[[photo]]\n用中單架國旗\n[[photo]]\n\n[[img:林本仁-lar-4.webp]]",
+    "position": "雙手收 \n架腳 （大腿水平於地面，以避免擋到手術空間）\n[[photo]]\n胸約\n要墊肩（因為要頭低腳高，避免住上滑；各種線要塞進凹槽）\n[[photo]]\n用中單架國旗\n[[photo]]\n\n[[img:林本仁-lar-4.webp]]",
     "incision": "肚臍：藍色trocar，其他：紫色\n[[img:林本仁-lar-5.webp]]\n\n[[photo]]\n\n[[photo]]",
-    "instrument": "Covidien ligasure\nEthicon Echelon GIA\nSurgiWrap + AbsorbaTack 釘防沾黏\n29mm Echelon powered stapler電動香菇頭",
+    "instrument": "手控電刀\nCovidien ligasure\nEthicon Echelon GIA\nSurgiWrap + AbsorbaTack 釘防沾黏\n29mm Echelon powered stapler電動香菇頭",
     "steps": "從lesser sac去到胃後面找到胰臟，胰臟下方找IMV斷掉（白釘或clip）\n分splenic flexure（從外側做到內側）\n找mesosigmoid裡面的IMA，白釘斷掉\n機器人手臂134要在LE之間\n[[photo]]\n老師達文西結束會自己跑去下面消毒anus\n黑釘切rectum\n切完rectum會延伸肚臍傷口，腸子拉出來斷血管（要把marginal artery留下來）、電刀斷proximal端、接香菇頭、丟回去\n關肚臍：5/8圓針吊上面，1-0 vicryl從下面關上來；2-0monocryl皮下，3-0 Nylon關皮\n關其他洞：5/8關fascia，3-0 Nylon關皮",
     "anastomosis": "",
     "drain": "",

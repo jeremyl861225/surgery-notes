@@ -120,17 +120,13 @@
       h += '<div class="wardgrp"><div class="wardh">' + esc(w) + '<span class="wn">' + byWard[w].length + ' 位</span></div><div class="docgrid">';
       byWard[w].forEach(function (d) {
         var n = cardsOfDoc(d.name).length;
-        var hasGen = d.general && Object.keys(d.general).length;
-        // 「有通則」不用符號標——◦ 接在中文名字後面看起來像句號。
-        // 改用左側雙線，跟句子條的面向記號同一套語言。
-        h += '<a class="doc' + (hasGen ? ' hasgen' : '') + '" href="#/d/' + encodeURIComponent(d.name) + '/"'
-          + (hasGen ? ' title="這位醫師有歸納出通則"' : '') + '>'
+        h += '<a class="doc" href="#/d/' + encodeURIComponent(d.name) + '/">'
           + '<span class="dn">' + esc(d.name) + '</span>'
           + '<span class="dc">' + n + '</span></a>';
       });
       h += '</div></div>';
     });
-    h += '<p class="note-line">數字是收錄的刀數；左邊有雙線的表示這位醫師有歸納出通則。</p></div>';
+    h += '<p class="note-line">數字是收錄的刀數。</p></div>';
     h += '<div class="sec"><div class="sec-t"><span>或先選一台刀</span><span class="n">' + D.procedures.length + ' 種</span></div><div class="lst">';
     D.procedures.forEach(function (p) {
       var n = cardsOfProc(p.key).length;
