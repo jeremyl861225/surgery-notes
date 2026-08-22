@@ -47,5 +47,12 @@ todo 的東西一樣都不會動到（`schema.sql` 開頭有寫為什麼）。
 
 ## 想清掉別人亂塞的東西
 
-- 文字：**Table Editor → drafts**，直接刪那一列。
-- 照片：**Storage → draft-photos**，刪那個資料夾（刪草稿不會連帶刪圖）。
+在 App 裡刪自己的草稿時，照片會一起刪掉（照片的刪除政策跟草稿共用同一把 `del_token`）。
+
+要從後台清別人的東西：
+
+- **單筆文字**：Table Editor → `drafts`，刪那一列。
+- **全部文字**：SQL Editor 跑 `delete from public.drafts;`（不可逆，沒有二次確認）。
+- **照片**：只能從 **Storage → draft-photos** 點選刪除。
+  Supabase 擋掉了直接對 storage 資料表下 SQL（會回
+  `Direct deletion from storage tables is not allowed`）。

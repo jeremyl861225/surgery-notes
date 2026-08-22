@@ -156,17 +156,39 @@
       });
     },
 
-    /** 刪除自己寫的草稿（del_token 走標頭，由 RLS 比對）。 */
-    remove: function (id) {
+    /** 刪除自己寫的草稿，連同它的照片（del_token 走標頭，由 RLS 比對）。 */
+    remove: function (id, photos) {
+      var c = cfg();
       var tok = ls(LS_TOKENS, {});
       var t = tok[id];
       if (!t) return Promise.reject(new Error('這不是這台裝置寫的草稿'));
       save(LS_LOCAL, ls(LS_LOCAL, []).filter(function (d) { return d.id !== id; }));
       save(LS_QUEUE, ls(LS_QUEUE, []).filter(function (x) { return x !== id; }));
-      var p = cfg()
-        ? api('drafts?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: { 'x-del-token': t } })
-        : Promise.resolve();
-      return p.then(function () { delete tok[id]; save(LS_TOKENS, tok); });
+
+      // **照片一定要在資料列之前刪**：storage 的刪除政策是拿路徑第一段
+      // （＝草稿 id）回頭比對 drafts 那一列的 del_token，列一旦先刪掉，
+      // 照片就再也沒有人能刪，永遠留在公開網址上。
+      var pics = (photos || []).map(function (u) {
+        var m = /\/draft-photos\/(.+)$/.exec(String(u));
+        return m ? decodeURIComponent(m[1]) : null;
+      }).filter(Boolean);
+
+      var delPics = (c && pics.length) ? Promise.all(pics.map(function (path) {
+        return fetch(c.SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path, {
+          method: 'DELETE',
+          headers: {
+            apikey: c.SUPABASE_KEY,
+            Authorization: 'Bearer ' + c.SUPABASE_KEY,
+            'x-del-token': t
+          }
+        }).catch(function () { /* 照片刪不掉不該擋住草稿本體被刪掉 */ });
+      })) : Promise.resolve();
+
+      return delPics.then(function () {
+        return c ? api('drafts?id=eq.' + encodeURIComponent(id), {
+          method: 'DELETE', headers: { 'x-del-token': t }
+        }) : null;
+      }).then(function () { delete tok[id]; save(LS_TOKENS, tok); });
     },
 
     /** 匯出這台裝置寫過、還沒上雲的草稿（雲端沒設定時的備援交付路徑）。 */

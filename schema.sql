@@ -79,4 +79,34 @@ drop policy if exists "photos insert" on storage.objects;
 create policy "photos insert" on storage.objects for insert
   with check (bucket_id = 'draft-photos');
 
--- 照片不給改、不給刪（刪草稿不會連帶刪圖，要清請到 Supabase 的 Storage 後台）。
+-- 刪照片：跟草稿同一把鑰匙。照片路徑是 <草稿id>/<序號>.webp，
+-- 所以拿路徑第一段去對 drafts 那一列的 del_token。
+--
+-- 為什麼要包成 security definer 的函式，不直接把子查詢寫進政策裡：
+-- 政策裡的子查詢是用呼叫者（anon）的身分跑的，而 anon 對 drafts.del_token
+-- 沒有 SELECT 權限（上面刻意收掉的），直接寫會 permission denied。
+-- 函式只回傳 true/false，token 是 24 bytes 隨機值，猜不出來。
+create or replace function public.draft_token_ok(p_name text, p_token text)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.drafts d
+    where d.id::text = split_part(p_name, '/', 1)
+      and d.del_token = p_token
+  );
+$$;
+
+revoke all on function public.draft_token_ok(text, text) from public;
+grant execute on function public.draft_token_ok(text, text) to anon;
+
+drop policy if exists "photos delete with token" on storage.objects;
+create policy "photos delete with token" on storage.objects for delete
+  using (
+    bucket_id = 'draft-photos'
+    and public.draft_token_ok(name, ((current_setting('request.headers', true))::json ->> 'x-del-token'))
+  );
+
+-- 照片一律不給改。

@@ -321,10 +321,12 @@
   }
 
   /* ---------- 草稿 ---------- */
+  var draftPhotos = {};   // 草稿 id -> 照片網址，刪除時要一起送給 Cloud.remove
   function loadDrafts(filter) {
     var box = $('#drafts'); if (!box) return;
     box.innerHTML = '<div class="empty-hint">讀取草稿…</div>';
     Cloud.list(filter).then(function (rows) {
+      rows.forEach(function (r) { draftPhotos[r.id] = r.photos || []; });
       if (!rows.length) { box.innerHTML = ''; return; }
       var h = '<div class="sec"><div class="sec-t"><span>草稿</span><span class="n">' + rows.length + ' 則</span></div>';
       rows.forEach(function (r) {
@@ -429,8 +431,9 @@
     if (e.target.closest('[data-add]')) { openForm(); return; }
     var del = e.target.closest('[data-del]');
     if (del) {
-      if (!confirm('刪掉這則草稿？刪了救不回來。')) return;
-      Cloud.remove(del.getAttribute('data-del')).then(render)
+      if (!confirm('刪掉這則草稿？照片也會一起刪掉，救不回來。')) return;
+      var did = del.getAttribute('data-del');
+      Cloud.remove(did, draftPhotos[did]).then(render)
         .catch(function (err) { alert('刪不掉：' + err.message); });
       return;
     }
