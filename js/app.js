@@ -26,6 +26,9 @@
     ['note',        'Notes',           '備註']
   ];
   var FLABEL = {}; FIELDS.forEach(function (f) { FLABEL[f[0]] = f; });
+  // 醫師通則是「不分哪台刀都一樣」的東西，跟上面那十個逐台刀的欄位不同層，
+  // 所以刻意不放進 FIELDS——放進去的話每張卡片都會平白多長一欄。
+  var GENERAL = ['general', 'Doctor-wide', '醫師通則'];
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -153,8 +156,11 @@
         + c.approach.map(function (a) { return '<span class="tag">' + esc(a) + '</span>'; }).join('')
         + '</span></span><span class="cnt">→</span></a>';
     });
-    h += '</div></div>';
+    h += '</div>';
+    h += '<div class="btnrow"><button class="btn" data-add="1">＋ 新增草稿</button></div></div>';
+    h += '<div id="drafts"></div>';
     main.innerHTML = h;
+    loadDrafts({ doctor: d.name });
   }
 
   /* ---------- 術式頁 ---------- */
@@ -321,17 +327,39 @@
   function loadDrafts(filter) {
     var box = $('#drafts'); if (!box) return;
     box.innerHTML = '<div class="empty-hint">讀取草稿…</div>';
-    Cloud.list(filter).then(function (rows) {
+    // 卡片頁除了這台刀的草稿，還要把這位醫師的「醫師通則」草稿撈進來——
+    // 通則不綁術式，只用術式過濾的話它永遠不會出現在任何一張卡片上。
+    var jobs = [Cloud.list(filter)];
+    if (filter.doctor && filter.proc) jobs.push(Cloud.list({ doctor: filter.doctor }));
+
+    Promise.all(jobs).then(function (lists) {
+      var seen = {}, rows = [];
+      lists.forEach(function (list, i) {
+        list.forEach(function (r) {
+          if (seen[r.id]) return;
+          if (i > 0 && !(r.fields || {}).general) return;   // 第二批只取有寫通則的
+          seen[r.id] = 1; rows.push(r);
+        });
+      });
+      // 通則排前面：它對整頁都適用，先看到比較合理
+      rows.sort(function (a, b) {
+        var ga = (a.fields || {}).general ? 0 : 1, gb = (b.fields || {}).general ? 0 : 1;
+        return ga - gb || String(b.created_at).localeCompare(String(a.created_at));
+      });
       rows.forEach(function (r) { draftPhotos[r.id] = r.photos || []; });
       if (!rows.length) { box.innerHTML = ''; return; }
       var h = '<div class="sec"><div class="sec-t"><span>草稿</span><span class="n">' + rows.length + ' 則</span></div>';
       rows.forEach(function (r) {
         var mine = Cloud.isMine(r.id);
-        h += '<div class="draft' + (mine ? ' mine' : '') + '"><div class="dh"><span class="dbadge">草稿</span>'
-          + '<span class="dmeta">' + esc(r.doctor || '未指定醫師') + ' · ' + esc(procOf(r.procedure) ? procOf(r.procedure).en : (r.procedure || '')) + '</span>'
+        var gen = (r.fields || {}).general;
+        h += '<div class="draft' + (mine ? ' mine' : '') + (gen ? ' isgen' : '') + '"><div class="dh">'
+          + '<span class="dbadge">' + (gen ? '醫師通則・草稿' : '草稿') + '</span>'
+          + '<span class="dmeta">' + esc(r.doctor || '未指定醫師')
+          + (gen ? '（不分哪台刀）' : ' · ' + esc(procOf(r.procedure) ? procOf(r.procedure).en : (r.procedure || ''))) + '</span>'
           + '<span class="dmeta">' + esc((r.created_at || '').slice(0, 10)) + (r.author ? ' · ' + esc(r.author) : '') + '</span>'
           + (mine ? '<button class="btn" style="min-height:32px;padding:0 8px;margin-left:auto" data-del="' + esc(r.id) + '">刪除</button>' : '')
           + '</div>';
+        if (gen) h += '<div class="dfield"><b>' + esc(GENERAL[2]) + '</b><div>' + esc(gen) + '</div></div>';
         FIELDS.forEach(function (f) {
           var v = (r.fields || {})[f[0]]; if (!v) return;
           h += '<div class="dfield"><b>' + esc(f[2]) + '</b><div>' + esc(v) + '</div></div>';
@@ -358,6 +386,10 @@
     h += '<label class="f"><span>術式 <span class="zh">哪台刀</span></span><input type="text" id="f-proc" list="dl-proc" value="' + esc(st.proc || '') + '" placeholder="例如 LADG"></label>';
     h += '<datalist id="dl-proc">' + D.procedures.map(function (x) { return '<option value="' + esc(x.key) + '">' + esc(x.en) + '</option>'; }).join('') + '</datalist>';
     h += '<label class="f"><span>署名 <span class="zh">選填，讓別人知道是誰寫的</span></span><input type="text" id="f-author" placeholder="留空就是匿名"></label>';
+    h += '<label class="f gen-f"><span>' + esc(GENERAL[1]) + ' <span class="zh">' + esc(GENERAL[2])
+      + '——這位醫師不分哪台刀都一樣的習慣</span></span>'
+      + '<textarea id="f-general" placeholder="例如：所有刀都用 Harmonic、一律要打 local"></textarea>'
+      + '<span class="fhint">寫在這裡的內容會出現在這位醫師的每一台刀上，不綁特定術式（術式那格可以不填）。</span></label>';
     FIELDS.forEach(function (f) {
       h += '<label class="f"><span>' + esc(f[1]) + ' <span class="zh">' + esc(f[2]) + '</span></span><textarea id="f-' + f[0] + '"></textarea></label>';
     });
@@ -401,6 +433,8 @@
           ward: null, approach: null, fields: {}
         };
         var any = false;
+        var gv = $('#f-general', el).value.trim();
+        if (gv) { rec.fields[GENERAL[0]] = gv; any = true; }
         FIELDS.forEach(function (f) {
           var v = $('#f-' + f[0], el).value.trim();
           if (v) { rec.fields[f[0]] = v; any = true; }
@@ -463,6 +497,8 @@
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', render);
+  // 給 js/ptr.js（下拉更新）呼叫：重畫當前頁＝重新去雲端拉一次草稿
+  window.SN = { refresh: render };
 
   $('#ft-count').textContent = D.cards.length + ' 則醫師筆記、'
     + D.procedures.filter(function (p) { return p.general; }).length + ' 則術式通則，'

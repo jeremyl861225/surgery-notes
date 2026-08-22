@@ -138,7 +138,9 @@ a { color: inherit; text-decoration: none; }
 table.cmp { border-collapse: collapse; min-width: 100%; font-size: 13.5px; }
 table.cmp th, table.cmp td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; white-space: pre-wrap; }
 table.cmp thead th { position: sticky; top: 0; background: var(--bg2); font-family: var(--serif); font-size: 15px; letter-spacing: .03em; z-index: 2; }
-table.cmp tbody th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); background: var(--bg2); white-space: nowrap; position: sticky; left: 0; z-index: 1; }
+/* 首欄刻意「不」凍結。實機上橫向捲動時，sticky 的首欄會直接壓在內容上面
+   （欄位名是不透明底色），把左半邊的字整段蓋掉，反而比看不到欄名更糟。 */
+table.cmp tbody th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); background: var(--bg2); white-space: nowrap; }
 table.cmp td { min-width: 200px; }
 /* 差異：三重編碼——左粗邊 ＋ 底紋 ＋ 角落記號 */
 table.cmp td.diff { border-left: 3px solid var(--warn); background: var(--shade); }
@@ -256,3 +258,12 @@ label.okline {
   font-size: 13px; line-height: 1.6; cursor: pointer;
 }
 label.okline input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--warn); }
+
+/* ---------- 草稿表單的醫師通則欄 ---------- */
+label.f .fhint {
+  display: block; margin-top: 4px;
+  font-size: 11.5px; line-height: 1.55; color: var(--dim);
+}
+label.f.gen-f { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.draft.isgen { border-style: solid; border-color: var(--line2); }
+.draft.isgen .dbadge { border-color: var(--fg2); color: var(--fg2); }
