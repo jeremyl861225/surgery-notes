@@ -4,49 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>外科手術筆記</title>
-<meta name="description" content="台大一般外科：哪位醫師開哪台刀，擺位、打洞、器械與步驟的習慣筆記。">
-<meta name="theme-color" content="#efece1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0a1512" media="(prefers-color-scheme: dark)">
+<meta name="description" content="台大一般外科：哪位醫師開哪台刀，擺位、打洞、器械與步驟的習慣筆記。內容可自行編輯、匯出匯入。">
+<meta name="theme-color" content="#F4F1E9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130F" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
+<body class="booting">
 
-<div class="wrap">
-  <header class="hd">
-    <div class="eyebrow">NTUH · General Surgery</div>
-    <h1>外科手術筆記</h1>
-    <div class="sub">誰開哪台刀，擺位、打洞、器械、步驟怎麼做</div>
-  </header>
-</div>
-
-<div class="railzone">
-  <div class="wrap">
-    <div class="rail">
-      <div class="sent" id="sent"></div>
-      <a class="homebtn" id="home" href="#/" title="回主頁" hidden>回<br>主<br>頁</a>
-    </div>
+<div class="shell">
+  <div class="topbar">
+    <button id="backbtn" type="button" hidden></button>
+    <div class="brand">外科手術筆記</div>
   </div>
+  <main class="main" id="main"></main>
+  <nav class="tabbar" id="tabbar" aria-label="主要分頁"></nav>
 </div>
 
-<main class="wrap" id="main"></main>
-
-<div class="wrap">
-  <footer class="ft">
-    <p>資料來源：一般外科住院醫師共享備忘錄「擺位共筆」，<span id="ft-count"></span></p>
-    <p>這裡記的是各位主治醫師的個人偏好，不是診療指引，也不是台大醫院的正式文件。臨床決策請依當台刀的實際情況與主治醫師指示。</p>
-    <p id="ft-cloud"></p>
-  </footer>
+<div id="lb" hidden>
+  <button id="lb-close" type="button" aria-label="關閉"></button>
+  <div id="lb-slot"></div>
 </div>
+<div id="sheet" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/data.js"></script>
-<script src="js/config.js"></script>
-<script src="js/cloud.js"></script>
+<input id="file" type="file" accept="application/json,.json" hidden>
+<input id="imgfile" type="file" accept="image/*" hidden>
+
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/edit.js"></script>
 <script src="js/app.js"></script>
-<script src="js/ptr.js"></script>
 <script>
-if ('serviceWorker' in navigator) {
+window.SN_VERSION = 'v2 · 2026-08-26';
+// 本機開發時不裝 service worker——它的 stale-while-revalidate 會讓剛改好的
+// css/js 要重整兩次才看得到。要測離線行為就加 ?sw=1。
+var LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+if ('serviceWorker' in navigator && (!LOCAL || /[?&]sw=1/.test(location.search))) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
 }
 </script>

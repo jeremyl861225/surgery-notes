@@ -1,518 +1,578 @@
-/* 外科手術筆記 — 導覽與渲染。
- *
- * 導覽是「造句」：〔醫師〕的〔術式〕。兩個槽哪一個先填都可以，網址就是句子：
- *   #/                    兩槽都空 → 同時給醫師軌與術式軌
- *   #/d/李柏居            只填醫師 → 這位醫師開的刀 ＋ 醫師通則
- *   #/p/SASI              只填術式 → 開這台刀的醫師 ＋ 術式通則
- *   #/d/李柏居/p/SASI     兩槽都滿 → 筆記本體
- *   #/p/SASI/vs           比較所有醫師的這台刀
- * 點詞塊上的 × 就是退詞，等於返回上一層。
- */
+/* 畫面與路由。所有內容都從 Store 來，這支檔案裡沒有任何一筆資料。 */
 (function () {
-  var D = window.DATA;
+  'use strict';
+  var esc = UI.esc, icon = UI.icon, rich = UI.rich, ward = UI.ward, chip = UI.chip;
   var $ = function (s, r) { return (r || document).querySelector(s); };
-  var main = $('#main'), sentEl = $('#sent'), homeEl = $('#home');
 
-  var FIELDS = [
-    ['position',    'Position',        '擺位'],
-    ['incision',    'Incision / Port', '切口與打洞'],
-    ['instrument',  'Instruments',     '器械偏好'],
-    ['steps',       'Key steps',       '重要步驟'],
-    ['anastomosis', 'Anastomosis',     '吻合方式'],
-    ['drain',       'Drain',           '引流放置'],
-    ['closure',     'Wound closure',   '傷口關法'],
-    ['dressing',    'Dressing',        '傷口包紮'],
-    ['billing',     'NHI code',        '健保申報碼'],
-    ['note',        'Notes',           '備註']
+  var TABS = [
+    { id: 'doctors', label: '醫師', icon: 'doctors' },
+    { id: 'procs', label: '術式', icon: 'procs' },
+    { id: 'search', label: '搜尋', icon: 'search' },
+    { id: 'settings', label: '設定', icon: 'settings' }
   ];
-  var FLABEL = {}; FIELDS.forEach(function (f) { FLABEL[f[0]] = f; });
-  // 醫師通則是「不分哪台刀都一樣」的東西，跟上面那十個逐台刀的欄位不同層，
-  // 所以刻意不放進 FIELDS——放進去的話每張卡片都會平白多長一欄。
-  var GENERAL = ['general', 'Doctor-wide', '醫師通則'];
 
-  var esc = function (s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  var D = null, lastTab = 'doctors', theme = 'auto';
+  var idx = {};
+
+  function reindex() {
+    D = Store.data;
+    idx = { doc: {}, proc: {}, byDoc: {}, byProc: {} };
+    D.doctors.forEach(function (d) { idx.doc[d.id] = d; });
+    D.procedures.forEach(function (p) { idx.proc[p.id] = p; });
+    D.cards.forEach(function (c) {
+      c.doctorIds.forEach(function (i) { (idx.byDoc[i] = idx.byDoc[i] || []).push(c); });
+      (idx.byProc[c.procedureId] = idx.byProc[c.procedureId] || []).push(c);
     });
-  };
-  /* 文字裡的 [[img:檔名]] 換成圖片；其餘一律逸出。 */
-  function rich(t) {
-    return esc(t).split(/(\[\[img:[^\]]+\]\]|\[\[photo\]\])/).map(function (p) {
-      if (p === '[[photo]]') return '<span class="withheld">共筆這裡原本有一張刀房實拍照片。照片裡有可辨識的病人影像，沒有放上這個公開網站——請直接看備忘錄。</span>';
-      var m = /^\[\[img:(.+)\]\]$/.exec(p);
-      return m ? '<img loading="lazy" src="img/' + encodeURIComponent(m[1]) + '" alt="手繪示意圖">' : p;
-    }).join('');
+    HAY = null;
   }
-  var procOf = function (k) { return D.procedures.filter(function (p) { return p.key === k; })[0]; };
-  var docOf  = function (n) { return D.doctors.filter(function (d) { return d.name === n; })[0]; };
-  var cardsOfDoc  = function (n) { return D.cards.filter(function (c) { return c.doctors.indexOf(n) >= 0; }); };
-  var cardsOfProc = function (k) { return D.cards.filter(function (c) { return c.proc === k; }); };
-  var procTitle = function (p) {
-    return '<span class="t">' + esc(p.en) + (p.zh ? '<span class="zh">' + esc(p.zh) + '</span>' : '') + '</span>';
-  };
+  window.SN = { reindex: reindex, render: render, idx: function () { return idx; } };
 
-  /* ---------- 路由 ---------- */
-  var st = { doctor: null, proc: null, vs: false };
-  function readHash() {
-    var h = location.hash.replace(/^#\/?/, '');
-    var parts = h.split('/').filter(Boolean).map(decodeURIComponent);
-    st = { doctor: null, proc: null, vs: false };
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i] === 'd') st.doctor = parts[++i];
-      else if (parts[i] === 'p') st.proc = parts[++i];
-      else if (parts[i] === 'vs') st.vs = true;
+  function fLabel(k) {
+    var f = null;
+    D.fields.forEach(function (x) { if (x.key === k) f = x; });
+    return f || { key: k, zh: k, en: '' };
+  }
+  function procFull(p) { return p.en + (p.zh && p.zh !== p.en ? ' · ' + p.zh : ''); }
+  function docName(d) {
+    return esc(d.name) + (d.empId ? '<span class="emp">' + esc(d.empId) + '</span>' : '');
+  }
+
+  /* ───────── 分頁 ───────── */
+
+  function viewDoctors(w) {
+    var all = !w || w === 'all';
+    var h = '<h1 class="pane-title">醫師</h1>' +
+      '<p class="pane-sub">' + D.doctors.length + ' 位主治醫師，' + D.cards.length + ' 張筆記</p>' +
+      '<div class="filters" role="group" aria-label="依病房篩選">' +
+      '<a class="fchip' + (all ? ' is-on' : '') + '" href="#/doctors">全部</a>' +
+      D.wards.map(function (x) {
+        return '<a class="fchip' + (x === w ? ' is-on' : '') + '" href="#/doctors/' + esc(x) + '">' +
+          esc(x) + '</a>';
+      }).join('') + '</div>';
+
+    function rows(list) {
+      if (!list.length) return '<p class="empty-row">這個病房還沒有醫師。</p>';
+      return '<ul class="rows">' + list.map(function (d) {
+        var n = (idx.byDoc[d.id] || []).length;
+        return '<li><a class="row" href="#/d/' + d.id + '">' +
+          '<span class="row-main"><span class="row-name">' + docName(d) + '</span></span>' +
+          '<span class="row-meta"><span class="num">' + n + '</span> 台</span></a></li>';
+      }).join('') + '</ul>';
     }
-    if (st.doctor && !docOf(st.doctor)) st.doctor = null;
-    if (st.proc && !procOf(st.proc)) st.proc = null;
-  }
-  function href(o) {
-    var d = 'doctor' in o ? o.doctor : st.doctor, p = 'proc' in o ? o.proc : st.proc, v = 'vs' in o ? o.vs : false;
-    var s = '#/';
-    if (d) s += 'd/' + encodeURIComponent(d) + '/';
-    if (p) s += 'p/' + encodeURIComponent(p) + '/';
-    if (v) s += 'vs';
-    return s.replace(/\/$/, '/') ;
-  }
 
-  /* ---------- 句子條 ---------- */
-  function renderSent() {
-    var p = st.proc ? procOf(st.proc) : null;
-    var h = '';
-    h += st.doctor
-      ? '<a class="chip f-d" href="' + href({ doctor: null }) + '">' + esc(st.doctor) + '<span class="x">×</span></a>'
-      : '<a class="slot f-d" href="#/">〔哪位醫師〕</a>';
-    h += '<span class="lx">的</span>';
-    h += p
-      ? '<a class="chip f-p" href="' + href({ proc: null }) + '">' + esc(p.en) + '<span class="x">×</span></a>'
-      : '<a class="slot f-p" href="#/">〔哪台刀〕</a>';
-    sentEl.innerHTML = h;
-    // 「回主頁」＝把句子清空。它是 .rail 的同層元素，不在句子裡面——
-    // 放在句子裡的話，句子換行時它會被擠到自己一整行去。
-    //
-    // 這裡一定要防 null：PWA 有可能拿到「舊的 index.html ＋ 新的 app.js」
-    // （service worker 換版的空窗期就會這樣），少一個元素不該讓整頁變白。
-    // 拿不到就自己補一個上去。
-    // 用 isConnected 而不是只判 null——變數可能還握著一個已經被拆掉的節點，
-    // 那樣只會把 hidden 設在一個不在畫面上的元素上，按鈕等於消失。
-    if (!homeEl || !homeEl.isConnected) {
-      var rail = document.querySelector('.rail');
-      if (rail) {
-        homeEl = document.createElement('a');
-        homeEl.className = 'homebtn'; homeEl.id = 'home';
-        homeEl.href = '#/'; homeEl.title = '回主頁';
-        homeEl.innerHTML = '回<br>主<br>頁';
-        rail.appendChild(homeEl);
+    if (all) {
+      D.wards.forEach(function (x) {
+        var list = D.doctors.filter(function (d) { return d.wards.indexOf(x) >= 0; });
+        if (!list.length) return;
+        h += '<section class="group"><h2 class="group-hd">' + ward(x) +
+          '<span class="group-n">' + list.length + ' 位</span></h2>' + rows(list) + '</section>';
+      });
+      var none = D.doctors.filter(function (d) { return !d.wards.length; });
+      if (none.length) {
+        h += '<section class="group"><h2 class="group-hd">' + chip('未指定病房') +
+          '<span class="group-n">' + none.length + ' 位</span></h2>' + rows(none) + '</section>';
       }
-    }
-    if (homeEl) homeEl.hidden = !(st.doctor || st.proc);
-  }
-
-  /* ---------- 首頁：兩軌 ---------- */
-  function viewHome() {
-    var h = '';
-    // 醫師依病房分群、排成方磚——20 位排成一直行太長，手機要滑三四屏才看得完。
-    var byWard = {}, order = [];
-    D.doctors.forEach(function (d) {
-      var w = (d.wards && d.wards[0]) || '未分';
-      if (!byWard[w]) { byWard[w] = []; order.push(w); }
-      byWard[w].push(d);
-    });
-    order.sort();
-    h += '<div class="sec"><div class="sec-t"><span>先選醫師</span><span class="n">' + D.doctors.length + ' 位</span></div>';
-    order.forEach(function (w) {
-      h += '<div class="wardgrp"><div class="wardh">' + esc(w) + '<span class="wn">' + byWard[w].length + ' 位</span></div><div class="docgrid">';
-      byWard[w].forEach(function (d) {
-        var n = cardsOfDoc(d.name).length;
-        h += '<a class="doc" href="#/d/' + encodeURIComponent(d.name) + '/">'
-          + '<span class="dn">' + esc(d.name) + '</span>'
-          + '<span class="dc">' + n + '</span></a>';
-      });
-      h += '</div></div>';
-    });
-    h += '<p class="note-line">數字是收錄的刀數。</p></div>';
-    h += '<div class="sec"><div class="sec-t"><span>或先選一台刀</span><span class="n">' + D.procedures.length + ' 種</span></div><div class="lst">';
-    D.procedures.forEach(function (p) {
-      var n = cardsOfProc(p.key).length;
-      h += '<a class="li" href="#/p/' + encodeURIComponent(p.key) + '/"><span class="main">' + procTitle(p)
-        + '<span class="s">' + (p.general ? '<span class="tag">術式通則</span>' : '')
-        + (n > 1 ? '<span class="tag">可比較</span>' : '') + '</span></span>'
-        + '<span class="cnt' + (n > 1 ? ' hi' : '') + '">' + (n ? n + ' 位' : '—') + '</span></a>';
-    });
-    h += '</div></div>';
-    main.innerHTML = h;
-  }
-
-  /* ---------- 醫師頁 ---------- */
-  function viewDoctor() {
-    var d = docOf(st.doctor), list = cardsOfDoc(d.name);
-    var h = '';
-    h += genBox('這位醫師的通則', d.general, '從這位醫師的多則筆記裡逐字重複出現的行歸納，沒有推論。');
-    h += '<div class="sec"><div class="sec-t"><span>' + esc(d.name) + ' 開的刀</span><span class="n">' + list.length + ' 台</span></div><div class="lst">';
-    list.forEach(function (c) {
-      var p = procOf(c.proc);
-      h += '<a class="li" href="#/d/' + encodeURIComponent(d.name) + '/p/' + encodeURIComponent(c.proc) + '/"><span class="main">'
-        + procTitle(p) + '<span class="s">'
-        + (c.ward ? '<span class="tag w">' + esc(c.ward) + '</span>' : '')
-        + c.approach.map(function (a) { return '<span class="tag">' + esc(a) + '</span>'; }).join('')
-        + '</span></span><span class="cnt">→</span></a>';
-    });
-    h += '</div>';
-    h += '<div class="btnrow"><button class="btn" data-add="1">＋ 新增草稿</button></div></div>';
-    h += '<div id="drafts"></div>';
-    main.innerHTML = h;
-    loadDrafts({ doctor: d.name });
-  }
-
-  /* ---------- 術式頁 ---------- */
-  function viewProc() {
-    var p = procOf(st.proc), list = cardsOfProc(p.key);
-    var h = '';
-    if (p.general) h += generalProcBox(p);
-    h += '<div class="sec"><div class="sec-t"><span>誰開這台刀</span><span class="n">' + list.length + ' 位</span></div>';
-    if (list.length > 1) {
-      h += '<div class="btnrow"><a class="btn solid" href="#/p/' + encodeURIComponent(p.key) + '/vs">並排比較這 ' + list.length + ' 位</a></div>';
-    }
-    h += '<div class="lst">';
-    list.forEach(function (c) {
-      h += '<a class="li" href="#/d/' + encodeURIComponent(c.doctors[0]) + '/p/' + encodeURIComponent(p.key) + '/"><span class="main">'
-        + '<span class="t">' + esc(c.doctors.join('・')) + '</span><span class="s">'
-        + (c.ward ? '<span class="tag w">' + esc(c.ward) + '</span>' : '')
-        + c.approach.map(function (a) { return '<span class="tag">' + esc(a) + '</span>'; }).join('')
-        + '</span></span><span class="cnt">→</span></a>';
-    });
-    if (!list.length) h += '<div class="empty-hint">還沒有醫師的個人筆記。按下面的「＋」開一則草稿。</div>';
-    h += '</div>';
-    h += '<div class="btnrow"><button class="btn" data-add="1">＋ 新增草稿</button></div></div>';
-    h += '<div id="drafts"></div>';
-    main.innerHTML = h;
-    loadDrafts({ proc: p.key });
-  }
-
-  /* ---------- 通則區塊 ---------- */
-  function genBox(title, gen, hint) {
-    if (!gen || !Object.keys(gen).length) return '';
-    var h = '<div class="gen"><h3>' + esc(title) + '</h3>';
-    Object.keys(gen).forEach(function (f) {
-      h += '<div class="gl"><b style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);font-weight:400">'
-        + esc(FLABEL[f] ? FLABEL[f][2] : f) + '</b></div>';
-      gen[f].forEach(function (x) {
-        h += '<div class="gl">· ' + esc(x.t) + '<span class="ev">見於 ' + x.n + '/' + x.of + ' 則</span></div>';
-      });
-    });
-    if (hint) h += '<div class="note-line" style="margin-top:8px">' + esc(hint) + '</div>';
-    return h + '</div>';
-  }
-  function generalProcBox(p) {
-    var g = p.general, any = FIELDS.some(function (f) { return g.fields[f[0]]; });
-    if (!any) return '';
-    var h = '<div class="gen"><h3>這台刀的通則（不分醫師）</h3>';
-    FIELDS.forEach(function (f) {
-      var v = g.fields[f[0]]; if (!v) return;
-      h += '<div class="fld" style="margin-bottom:14px"><h3>' + esc(f[1]) + '<span class="zh">' + esc(f[2]) + '</span></h3>'
-        + '<div class="body">' + rich(v) + '</div></div>';
-    });
-    h += '<div class="note-line">來源：共筆的「' + esc(g.title) + '」。這則沒有掛醫師名，所以當成整台刀的通則；內文若提到某位老師的做法，是原文就這麼寫的。</div>';
-    return h + '</div>';
-  }
-
-  /* ---------- 卡片頁 ---------- */
-  function viewCard() {
-    var p = procOf(st.proc), d = docOf(st.doctor);
-    var c = D.cards.filter(function (x) { return x.proc === st.proc && x.doctors.indexOf(st.doctor) >= 0; })[0];
-    var h = '';
-    if (p.general) h += generalProcBox(p);
-    h += genBox(esc(d.name) + ' 的通則（不分哪台刀都一樣）', d.general, null);
-
-    if (!c) {
-      h += '<div class="empty-hint">共筆裡還沒有「' + esc(d.name) + ' 的 ' + esc(p.en) + '」這一則。按下面的「＋」開草稿。</div>';
     } else {
-      h += '<div class="sec"><div class="sec-t"><span>'
-        + (c.ward ? '<span class="tag w">' + esc(c.ward) + '</span>' : '')
-        + c.approach.map(function (a) { return '<span class="tag">' + esc(a) + '</span>'; }).join('')
-        + (c.doctors.length > 1 ? '<span class="tag">' + esc(c.doctors.join('・')) + '</span>' : '')
-        + '</span><span class="n">改於 ' + esc(String(c.modified).replace(/ 星期./, '')) + '</span></div>';
-      FIELDS.forEach(function (f) {
-        var v = c.fields[f[0]];
-        h += '<div class="fld' + (v ? '' : ' empty') + '"><h3>' + esc(f[1]) + '<span class="zh">' + esc(f[2]) + '</span></h3>'
-          + (v ? '<div class="body">' + rich(v) + '</div>' : '<div class="none">共筆沒寫</div>') + '</div>';
-      });
-      h += '</div>';
+      h += rows(D.doctors.filter(function (d) { return d.wards.indexOf(w) >= 0; }));
     }
-    var others = cardsOfProc(st.proc).length;
-    h += '<div class="btnrow">';
-    h += '<button class="btn solid" data-add="1">＋ 新增草稿</button>';
-    if (others > 1) h += '<a class="btn" href="#/p/' + encodeURIComponent(st.proc) + '/vs">跟其他 ' + (others - 1) + ' 位比較</a>';
-    h += '</div><div id="drafts"></div>';
-    main.innerHTML = h;
-    loadDrafts({ proc: st.proc, doctor: st.doctor });
+    return h + '<a class="addbtn" href="#/new/d">' + icon('plus') + '新增醫師</a>';
   }
 
-  /* ---------- 比較頁 ---------- */
-  function viewCompare() {
-    var p = procOf(st.proc), list = cardsOfProc(p.key);
-    var h = '<div class="sec"><div class="sec-t"><span>' + esc(p.en) + ' · 並排比較</span><span class="n">' + list.length + ' 位</span></div>';
-    h += '<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>';
-    list.forEach(function (c) {
-      h += '<th>' + esc(c.doctors.join('・')) + '<br><span style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em">'
-        + esc([c.ward].concat(c.approach).filter(Boolean).join(' · ')) + '</span></th>';
+  function viewProcs() {
+    var list = D.procedures.slice().sort(function (a, b) {
+      return (idx.byProc[b.id] || []).length - (idx.byProc[a.id] || []).length ||
+        a.key.localeCompare(b.key);
     });
-    h += '</tr></thead><tbody>';
-    FIELDS.forEach(function (f) {
-      // 這位醫師的通則行是從個別卡片扣掉的，比較時必須加回來——
-      // 否則會誤顯示成「這位醫師不做這件事」，而別人（只有一則筆記、沒歸納出通則的）
-      // 那一格還留著同一句話，比較的結論就整個相反。
-      var vals = list.map(function (c) {
-        var own = c.fields[f[0]] || '';
-        var pre = [];
-        c.doctors.forEach(function (dn) {
-          var g = (docOf(dn) || {}).general || {};
-          (g[f[0]] || []).forEach(function (x) { if (pre.indexOf(x.t) < 0) pre.push(x.t); });
-        });
-        return pre.length ? pre.join('\n') + (own ? '\n' + own : '') : own;
+    var h = '<h1 class="pane-title">術式</h1>' +
+      '<p class="pane-sub">' + D.procedures.length + ' 個術式，依有筆記的醫師人數排序</p>' +
+      '<ul class="rows rows-proc">';
+    list.forEach(function (p) {
+      var docs = [];
+      (idx.byProc[p.id] || []).forEach(function (c) {
+        c.doctorIds.forEach(function (i) { if (docs.indexOf(i) < 0) docs.push(i); });
       });
-      if (!vals.some(Boolean)) return;
-      // 逐行比對：出現在所有「有寫這欄」的醫師身上的行 → 視為一致，壓成灰字。
-      var nonEmpty = vals.filter(Boolean);
-      var count = {};
-      nonEmpty.forEach(function (v) {
-        var seen = {};
-        v.split('\n').forEach(function (l) {
-          var k = l.trim(); if (!k || seen[k]) return; seen[k] = 1; count[k] = (count[k] || 0) + 1;
-        });
-      });
-      h += '<tr><th>' + esc(f[2]) + '<br><span style="text-transform:none;letter-spacing:0;font-size:9.5px">' + esc(f[1]) + '</span></th>';
-      vals.forEach(function (v) {
-        if (!v) { h += '<td class="same">—</td>'; return; }
-        var uniq = false;
-        var body = v.split('\n').map(function (l) {
-          var k = l.trim();
-          if (!k) return '';
-          if (/^\[\[img:/.test(k)) return rich(k);
-          if (count[k] === nonEmpty.length && nonEmpty.length > 1) return '<span style="color:var(--dim)">' + rich(k) + '</span>';
-          uniq = true;
-          return rich(k);
-        }).join('\n');
-        h += '<td class="' + (uniq ? 'diff' : 'same') + '">' + body + '</td>';
-      });
-      h += '</tr>';
+      h += '<li><a class="row" href="#/p/' + p.id + '">' +
+        '<span class="row-main"><span class="row-name">' + esc(p.key) + '</span>' +
+        '<span class="row-sub">' + esc(procFull(p)) + '</span></span>' +
+        '<span class="row-meta"><span class="num">' + docs.length + '</span> 位</span></a></li>';
     });
-    h += '</tbody></table></div>';
-    h += '<p class="cmp-key">灰字＝這一欄大家都一樣；左側粗線＋底紋的格子＝這位醫師跟別人不同。空格「—」是共筆沒寫，不代表這位醫師不做。</p>';
-    h += '</div>';
-    main.innerHTML = h;
+    return h + '</ul><a class="addbtn" href="#/new/p">' + icon('plus') + '新增術式</a>';
   }
 
-  /* ---------- 照片 ---------- */
-  /* 重新編碼有兩個作用：把 3–4 MB 的手機照壓到幾百 KB，
-     以及**洗掉 EXIF**（GPS 座標與拍攝時間都在裡面，那是院內位置與時間）。 */
-  function shrink(file) {
-    return new Promise(function (res, rej) {
-      var img = new Image(), url = URL.createObjectURL(file);
-      img.onload = function () {
-        URL.revokeObjectURL(url);
-        var w = img.width, h = img.height, M = 1600;
-        if (Math.max(w, h) > M) { var r = M / Math.max(w, h); w = Math.round(w * r); h = Math.round(h * r); }
-        var cv = document.createElement('canvas');
-        cv.width = w; cv.height = h;
-        cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        cv.toBlob(function (b) { b ? res(b) : rej(new Error('轉檔失敗')); }, 'image/webp', 0.8);
-      };
-      img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('這個檔案讀不出圖片')); };
-      img.src = url;
+  /* ───────── 搜尋 ───────── */
+
+  var HAY = null;
+  function haystack() {
+    if (HAY) return HAY;
+    HAY = [];
+    var join = function (o) {
+      return D.fields.map(function (f) { return o[f.key] || ''; }).join('\n').trim();
+    };
+    D.cards.forEach(function (c) {
+      var p = idx.proc[c.procedureId] || { key: '？', en: '', zh: '' };
+      var names = c.doctorIds.map(function (i) { return (idx.doc[i] || {}).name || '？'; }).join('、');
+      var body = join(c.fields);
+      HAY.push({
+        href: '#/c/' + c.id, title: names, sub: p.key, gen: false, body: body,
+        t: (names + ' ' + p.key + ' ' + p.en + ' ' + p.zh + ' ' + (c.approach || []).join(' ') +
+          ' ' + body).toLowerCase()
+      });
     });
+    // 通則也要搜得到：只搜卡片的話，LC 的 ICG 怎麼打這種只寫在通則裡的事永遠找不到
+    D.procedures.forEach(function (p) {
+      var body = join(p.general || {});
+      if (!body) return;
+      HAY.push({
+        href: '#/p/' + p.id, title: p.key, sub: '術式通則', gen: true, body: body,
+        t: (p.key + ' ' + p.en + ' ' + p.zh + ' ' + body).toLowerCase()
+      });
+    });
+    D.doctors.forEach(function (d) {
+      var body = join(d.general || {});
+      if (!body) return;
+      HAY.push({
+        href: '#/d/' + d.id, title: d.name, sub: '醫師通則', gen: true, body: body,
+        t: (d.name + ' ' + (d.empId || '') + ' ' + body).toLowerCase()
+      });
+    });
+    return HAY;
   }
 
-  /* ---------- 草稿 ---------- */
-  var draftPhotos = {};   // 草稿 id -> 照片網址，刪除時要一起送給 Cloud.remove
-  function loadDrafts(filter) {
-    var box = $('#drafts'); if (!box) return;
-    box.innerHTML = '<div class="empty-hint">讀取草稿…</div>';
-    // 卡片頁除了這台刀的草稿，還要把這位醫師的「醫師通則」草稿撈進來——
-    // 通則不綁術式，只用術式過濾的話它永遠不會出現在任何一張卡片上。
-    var jobs = [Cloud.list(filter)];
-    if (filter.doctor && filter.proc) jobs.push(Cloud.list({ doctor: filter.doctor }));
-
-    Promise.all(jobs).then(function (lists) {
-      var seen = {}, rows = [];
-      lists.forEach(function (list, i) {
-        list.forEach(function (r) {
-          if (seen[r.id]) return;
-          if (i > 0 && !(r.fields || {}).general) return;   // 第二批只取有寫通則的
-          seen[r.id] = 1; rows.push(r);
-        });
-      });
-      // 通則排前面：它對整頁都適用，先看到比較合理
-      rows.sort(function (a, b) {
-        var ga = (a.fields || {}).general ? 0 : 1, gb = (b.fields || {}).general ? 0 : 1;
-        return ga - gb || String(b.created_at).localeCompare(String(a.created_at));
-      });
-      rows.forEach(function (r) { draftPhotos[r.id] = r.photos || []; });
-      if (!rows.length) { box.innerHTML = ''; return; }
-      var h = '<div class="sec"><div class="sec-t"><span>草稿</span><span class="n">' + rows.length + ' 則</span></div>';
-      rows.forEach(function (r) {
-        var mine = Cloud.isMine(r.id);
-        var gen = (r.fields || {}).general;
-        h += '<div class="draft' + (mine ? ' mine' : '') + (gen ? ' isgen' : '') + '"><div class="dh">'
-          + '<span class="dbadge">' + (gen ? '醫師通則・草稿' : '草稿') + '</span>'
-          + '<span class="dmeta">' + esc(r.doctor || '未指定醫師')
-          + (gen ? '（不分哪台刀）' : ' · ' + esc(procOf(r.procedure) ? procOf(r.procedure).en : (r.procedure || ''))) + '</span>'
-          + '<span class="dmeta">' + esc((r.created_at || '').slice(0, 10)) + (r.author ? ' · ' + esc(r.author) : '') + '</span>'
-          + (mine ? '<button class="btn" style="min-height:32px;padding:0 8px;margin-left:auto" data-del="' + esc(r.id) + '">刪除</button>' : '')
-          + '</div>';
-        if (gen) h += '<div class="dfield"><b>' + esc(GENERAL[2]) + '</b><div>' + esc(gen) + '</div></div>';
-        FIELDS.forEach(function (f) {
-          var v = (r.fields || {})[f[0]]; if (!v) return;
-          h += '<div class="dfield"><b>' + esc(f[2]) + '</b><div>' + esc(v) + '</div></div>';
-        });
-        (r.photos || []).forEach(function (u) {
-          h += '<img class="dphoto" loading="lazy" src="' + esc(u) + '" alt="草稿附圖">';
-        });
-        h += '</div>';
-      });
-      box.innerHTML = h + '</div>';
-    });
+  function snippet(body, q) {
+    var i = body.toLowerCase().indexOf(q);
+    if (i < 0) return '';
+    var s = Math.max(0, i - 22), t = body.slice(s, i + q.length + 48).replace(/\n/g, ' ');
+    return (s ? '…' : '') + esc(t.slice(0, i - s)) + '<mark>' + esc(t.substr(i - s, q.length)) +
+      '</mark>' + esc(t.slice(i - s + q.length)) + '…';
   }
 
-  function openForm() {
-    var p = st.proc ? procOf(st.proc) : null;
-    var el = document.createElement('div');
-    el.className = 'sheet';
-    var h = '<div class="sheet-hd"><div class="wrap"><div class="row"><span class="ttl">＋ 新增草稿</span>'
-      + '<span><button class="btn" data-cancel="1">取消</button> <button class="btn solid" data-save="1">存起來</button></span></div></div></div>';
-    h += '<div class="wrap">';
-    h += '<div class="warnbox">草稿會馬上公開顯示給所有開這個網站的人看。寫的時候不要放病人的姓名、病歷號或任何可以認出病人的細節。</div>';
-    h += '<label class="f"><span>醫師 <span class="zh">哪位主治</span></span><input type="text" id="f-doctor" list="dl-doc" value="' + esc(st.doctor || '') + '" placeholder="例如 賴逸儒"></label>';
-    h += '<datalist id="dl-doc">' + D.doctors.map(function (d) { return '<option value="' + esc(d.name) + '">'; }).join('') + '</datalist>';
-    h += '<label class="f"><span>術式 <span class="zh">哪台刀</span></span><input type="text" id="f-proc" list="dl-proc" value="' + esc(st.proc || '') + '" placeholder="例如 LADG"></label>';
-    h += '<datalist id="dl-proc">' + D.procedures.map(function (x) { return '<option value="' + esc(x.key) + '">' + esc(x.en) + '</option>'; }).join('') + '</datalist>';
-    h += '<label class="f"><span>署名 <span class="zh">選填，讓別人知道是誰寫的</span></span><input type="text" id="f-author" placeholder="留空就是匿名"></label>';
-    h += '<label class="f gen-f"><span>' + esc(GENERAL[1]) + ' <span class="zh">' + esc(GENERAL[2])
-      + '——這位醫師不分哪台刀都一樣的習慣</span></span>'
-      + '<textarea id="f-general" placeholder="例如：所有刀都用 Harmonic、一律要打 local"></textarea>'
-      + '<span class="fhint">寫在這裡的內容會出現在這位醫師的每一台刀上，不綁特定術式（術式那格可以不填）。</span></label>';
-    FIELDS.forEach(function (f) {
-      h += '<label class="f"><span>' + esc(f[1]) + ' <span class="zh">' + esc(f[2]) + '</span></span><textarea id="f-' + f[0] + '"></textarea></label>';
-    });
-    h += '<label class="f"><span>照片 <span class="zh">選填，可多張</span></span>'
-      + '<input type="file" id="f-photo" accept="image/*" multiple></label>';
-    h += '<div id="photobox"></div>';
-    h += '<label class="okline"><input type="checkbox" id="f-ok"> '
-      + '<span>我確認要上傳的照片裡<b>沒有病人的臉、身體或任何認得出是誰的東西</b>，也沒有拍到螢幕上的病人資料。</span></label>';
-    h += '<div class="btnrow"><button class="btn solid" data-save="1">存起來</button><button class="btn" data-cancel="1">取消</button></div>';
-    if (!Cloud.enabled()) h += '<div class="warnbox">雲端還沒設定，草稿只會存在這台裝置。設定方式見 repo 的 SETUP.md。</div>';
-    h += '</div>';
-    el.innerHTML = h;
-    document.body.appendChild(el);
-    var pics = [];   // 已經壓好、等著送出的 Blob
-    $('#f-photo', el).addEventListener('change', function (ev) {
-      var box = $('#photobox', el);
-      Array.prototype.forEach.call(ev.target.files, function (file) {
-        shrink(file).then(function (b) {
-          pics.push(b);
-          var fig = document.createElement('figure');
-          fig.className = 'pic';
-          fig.innerHTML = '<img src="' + URL.createObjectURL(b) + '" alt="">'
-            + '<figcaption>' + Math.round(b.size / 1024) + ' KB'
-            + '<button type="button" class="rm">移除</button></figcaption>';
-          fig.querySelector('.rm').addEventListener('click', function () {
-            pics.splice(pics.indexOf(b), 1); fig.remove();
-          });
-          box.appendChild(fig);
-        }).catch(function (err) { alert(file.name + '：' + err.message); });
-      });
-      ev.target.value = '';
-    });
+  var HINT = '<p class="hint">醫師、術式、員編，連步驟裡的字都會一起搜。' +
+    '試試「賴逸儒」、「LC」、「ICG」、「monocryl」、「腳控電刀」。</p>';
 
-    el.addEventListener('click', function (e) {
-      if (e.target.closest('[data-cancel]')) { el.remove(); return; }
-      if (e.target.closest('[data-save]')) {
-        var rec = {
-          doctor: $('#f-doctor', el).value.trim() || null,
-          procedure: $('#f-proc', el).value.trim() || null,
-          author: $('#f-author', el).value.trim() || null,
-          ward: null, approach: null, fields: {}
-        };
-        var any = false;
-        var gv = $('#f-general', el).value.trim();
-        if (gv) { rec.fields[GENERAL[0]] = gv; any = true; }
-        FIELDS.forEach(function (f) {
-          var v = $('#f-' + f[0], el).value.trim();
-          if (v) { rec.fields[f[0]] = v; any = true; }
-        });
-        if (!any && !pics.length) { alert('至少寫一個欄位，或放一張照片。'); return; }
-        if (pics.length && !$('#f-ok', el).checked) {
-          alert('要上傳照片的話，請先勾下面那個確認。');
-          $('#f-ok', el).scrollIntoView({ block: 'center' });
-          return;
-        }
-        e.target.disabled = true;
-        e.target.textContent = pics.length ? '上傳中…' : '存起來';
-        Cloud.add(rec, pics).then(function () { el.remove(); render(); })
-          .catch(function (err) {
-            alert('存不起來：' + err.message);
-            e.target.disabled = false; e.target.textContent = '存起來';
-          });
+  function viewSearch() {
+    return '<h1 class="pane-title">搜尋</h1>' +
+      '<div class="searchbar"><label class="sr" for="q">搜尋醫師、術式或筆記內文</label>' +
+      icon('search') + '<input id="q" type="search" placeholder="醫師、術式，或內文裡的字" ' +
+      'autocomplete="off" autocapitalize="off" spellcheck="false"></div>' +
+      '<div id="results">' + HINT + '</div>';
+  }
+
+  function runSearch(q) {
+    q = q.trim().toLowerCase();
+    var box = $('#results');
+    if (!box) return;
+    if (!q) { box.innerHTML = HINT; return; }
+    var hits = haystack().filter(function (r) { return r.t.indexOf(q) >= 0; });
+    if (!hits.length) { box.innerHTML = '<p class="hint">找不到「' + esc(q) + '」。</p>'; return; }
+    var h = '<p class="pane-sub">' + hits.length + ' 筆</p><ul class="rows">';
+    hits.slice(0, 50).forEach(function (r) {
+      h += '<li><a class="row" href="' + r.href + '">' +
+        '<span class="row-main"><span class="row-name">' + esc(r.title) +
+        '<span class="row-x' + (r.gen ? ' row-x-gen' : '') + '">' + esc(r.sub) + '</span></span>' +
+        (snippet(r.body, q) ? '<span class="row-snip">' + snippet(r.body, q) + '</span>' : '') +
+        '</span></a></li>';
+    });
+    box.innerHTML = h + '</ul>';
+  }
+
+  /* ───────── 詳細頁 ───────── */
+
+  function genBlock(title, hint, gen, editHref) {
+    var keys = D.fields.filter(function (f) { return (gen || {})[f.key]; });
+    var h = '<section class="gen"><h2 class="gen-hd">' + esc(title) +
+      '<span class="gen-hint">' + esc(hint) + '</span></h2>';
+    if (!keys.length) {
+      h += '<p class="gen-empty">還沒有寫通則。' +
+        (editHref ? '<a href="' + editHref + '">現在寫一則</a>' : '') + '</p>';
+    } else {
+      keys.forEach(function (f) {
+        h += '<div class="gen-f"><h3>' + esc(f.zh) + '</h3>' + rich(gen[f.key], f.zh) + '</div>';
+      });
+    }
+    return h + '</section>';
+  }
+
+  function editBtn(href) {
+    return '<a class="edit-b" href="' + href + '">' + icon('pencil') + '編輯</a>';
+  }
+
+  function viewDoctor(id) {
+    var d = idx.doc[id];
+    if (!d) return notFound();
+    var cs = (idx.byDoc[id] || []).slice().sort(function (a, b) {
+      return (idx.proc[a.procedureId] || {}).key.localeCompare((idx.proc[b.procedureId] || {}).key);
+    });
+    var h = '<header class="detail-hd">' + editBtn('#/edit/d/' + d.id) +
+      '<p class="detail-kind">醫師</p>' +
+      '<h1 class="detail-name">' + esc(d.name) + '</h1>' +
+      (d.empId ? '<p class="detail-emp">員編 ' + esc(d.empId) + '</p>' : '') +
+      '<div class="chips">' + d.wards.map(ward).join('') + chip(cs.length + ' 台刀') + '</div>' +
+      '</header>';
+    if (Object.keys(d.general || {}).length) {
+      h += genBlock(d.name + ' 的通則', '他開任何一台刀都這樣', d.general, '#/edit/d/' + d.id);
+    }
+    h += '<section class="sect"><h2 class="sect-hd">這位醫師的筆記</h2>';
+    if (!cs.length) h += '<p class="empty-row">還沒有筆記。</p>';
+    else {
+      h += '<ul class="rows">';
+      cs.forEach(function (c) {
+        var p = idx.proc[c.procedureId] || { key: '？', en: '', zh: '' };
+        var co = c.doctorIds.filter(function (i) { return i !== id; })
+          .map(function (i) { return (idx.doc[i] || {}).name; }).filter(Boolean);
+        h += '<li><a class="row" href="#/c/' + c.id + '">' +
+          '<span class="row-main"><span class="row-name">' + esc(p.key) + '</span>' +
+          '<span class="row-sub">' + esc(procFull(p)) +
+          (co.length ? ' · 與 ' + esc(co.join('、')) + ' 共用' : '') + '</span></span>' +
+          '<span class="row-tags">' + (c.approach || []).map(function (a) {
+            return '<i>' + esc(a) + '</i>';
+          }).join('') + '</span></a></li>';
+      });
+      h += '</ul>';
+    }
+    return h + '</section><a class="addbtn" href="#/new/c/' + d.id + '/-">' +
+      icon('plus') + '幫這位醫師新增筆記</a>';
+  }
+
+  function viewProc(id) {
+    var p = idx.proc[id];
+    if (!p) return notFound();
+    var cs = idx.byProc[id] || [];
+    var h = '<header class="detail-hd">' + editBtn('#/edit/p/' + p.id) +
+      '<p class="detail-kind">術式</p>' +
+      '<h1 class="detail-name">' + esc(p.key) + '</h1>' +
+      '<p class="detail-full">' + esc(procFull(p)) + '</p></header>';
+    // 通則永遠顯示，而且排在醫師清單之上——沒寫的時候它就是「去寫一則」的入口
+    h += genBlock('術式通則', '不分哪位醫師都適用', p.general, '#/edit/p/' + p.id);
+    h += '<section class="sect"><h2 class="sect-hd">誰開這台刀</h2>';
+    if (!cs.length) h += '<p class="empty-row">還沒有人寫這台刀的筆記。</p>';
+    else {
+      h += '<ul class="rows">';
+      cs.forEach(function (c) {
+        h += '<li><a class="row" href="#/c/' + c.id + '">' +
+          '<span class="row-main"><span class="row-name">' +
+          esc(c.doctorIds.map(function (i) { return (idx.doc[i] || {}).name || '？'; }).join('、')) +
+          '</span></span><span class="row-tags">' +
+          (c.approach || []).map(function (a) { return '<i>' + esc(a) + '</i>'; }).join('') +
+          '</span></a></li>';
+      });
+      h += '</ul>';
+    }
+    return h + '</section><a class="addbtn" href="#/new/c/-/' + p.id + '">' +
+      icon('plus') + '新增這台刀的筆記</a>';
+  }
+
+  function viewCard(id) {
+    var c = null;
+    D.cards.forEach(function (x) { if (x.id === id) c = x; });
+    if (!c) return notFound();
+    var p = idx.proc[c.procedureId] || { key: '？', en: '', zh: '' };
+    var docs = c.doctorIds.map(function (i) { return idx.doc[i]; }).filter(Boolean);
+
+    var h = '<header class="detail-hd">' + editBtn('#/edit/c/' + c.id) +
+      '<p class="detail-kind">' +
+      docs.map(function (d) {
+        return '<a class="up" href="#/d/' + d.id + '">' + esc(d.name) + '</a>';
+      }).join('、') + ' 的</p>' +
+      '<h1 class="detail-name">' + esc(p.key) + '</h1>' +
+      '<p class="detail-full"><a class="up" href="#/p/' + p.id + '">' + esc(procFull(p)) + '</a></p>' +
+      '<div class="chips">' +
+      docs.map(function (d) { return d.wards.map(ward).join(''); }).join('') +
+      (c.approach || []).map(function (a) { return chip(a, 'chip-app'); }).join('') +
+      '</div></header>';
+
+    docs.forEach(function (d) {
+      if (Object.keys(d.general || {}).length) {
+        h += genBlock(d.name + ' 的通則', '他開任何一台刀都這樣', d.general, '#/edit/d/' + d.id);
       }
     });
+    if (Object.keys(p.general || {}).length) {
+      h += genBlock(p.key + ' 的術式通則', '不分哪位醫師都適用', p.general, '#/edit/p/' + p.id);
+    }
+
+    h += '<dl class="fields">';
+    D.fields.forEach(function (f, i) {
+      var v = c.fields[f.key];
+      h += '<div class="field' + (v ? '' : ' is-empty') + '" style="--i:' + i + '">' +
+        '<dt><span class="f-zh">' + esc(f.zh) + '</span>' +
+        (f.en ? '<span class="f-en">' + esc(f.en) + '</span>' : '') + '</dt>' +
+        '<dd>' + (v ? rich(v, f.zh) : '<p class="empty">共筆沒寫</p>') + '</dd></div>';
+    });
+    h += '</dl>';
+    if (c.updatedAt) {
+      h += '<p class="stamp">最後更新 ' + esc(String(c.updatedAt).slice(0, 10).replace(/-/g, '/')) + '</p>';
+    }
+    return h;
   }
 
-  /* ---------- 事件 ---------- */
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('[data-add]')) { openForm(); return; }
-    var del = e.target.closest('[data-del]');
-    if (del) {
-      if (!confirm('刪掉這則草稿？照片也會一起刪掉，救不回來。')) return;
-      var did = del.getAttribute('data-del');
-      Cloud.remove(did, draftPhotos[did]).then(render)
-        .catch(function (err) { alert('刪不掉：' + err.message); });
-      return;
-    }
-    var img = e.target.closest('.fld img, .cmp img, .draft .dphoto');
-    if (img) {
-      var lb = document.createElement('div');
-      lb.className = 'lb';
-      lb.innerHTML = '<button class="cl">關閉 ×</button><img src="' + img.getAttribute('src') + '" alt="">';
-      lb.addEventListener('click', function () { lb.remove(); });
-      document.body.appendChild(lb);
-    }
-  });
-
-  /* ---------- 主渲染 ---------- */
-  function render() {
-    readHash();
-    try {
-      renderSent();
-      if (st.proc && st.vs) viewCompare();
-      else if (st.doctor && st.proc) viewCard();
-      else if (st.doctor) viewDoctor();
-      else if (st.proc) viewProc();
-      else viewHome();
-    } catch (e) {
-      // 白畫面是最糟的失敗方式——至少要留一條回得去的路。
-      console.error(e);
-      main.innerHTML = '<div class="warnbox">這一頁沒能畫出來（' + esc(e.message)
-        + '）。<a href="#/" style="text-decoration:underline">回主頁</a>再試一次；'
-        + '如果一直這樣，把這個 App 從主畫面移除再重新加入。</div>';
-    }
-    window.scrollTo(0, 0);
+  function notFound() {
+    return '<header class="detail-hd"><h1 class="detail-name">找不到</h1>' +
+      '<p class="detail-full">這個連結指向的東西不在了。</p></header>';
   }
-  window.addEventListener('hashchange', render);
-  // 給 js/ptr.js（下拉更新）呼叫：重畫當前頁＝重新去雲端拉一次草稿
-  window.SN = { refresh: render };
 
-  $('#ft-count').textContent = D.cards.length + ' 則醫師筆記、'
-    + D.procedures.filter(function (p) { return p.general; }).length + ' 則術式通則，'
-    + D.doctors.length + ' 位主治。';
-  // 雲端連得上但 drafts 表還沒建（SQL 還沒跑）時，要講清楚是哪一種狀況——
-  // 不然使用者會以為是自己沒設定，跑去翻 config.js。
-  if (!Cloud.enabled()) {
-    $('#ft-cloud').textContent = '（雲端尚未設定：草稿目前只存在你這台裝置。）';
-  } else {
-    Cloud.ping().then(function (ok) {
-      $('#ft-cloud').textContent = ok ? '' :
-        '（雲端連得上，但草稿資料表還沒建立——請照 SETUP.md 把 schema.sql 跑一次。目前草稿只存在你這台裝置。）';
+  /* ───────── 設定 ───────── */
+
+  function viewSettings() {
+    var d = D;
+    return '<h1 class="pane-title">設定</h1>' +
+      '<section class="set-block"><h2>資料</h2>' +
+      '<p class="set-note">全部內容存在這台裝置上，沒有伺服器。要備份或換裝置，' +
+      '就匯出一個檔案放進 Google Drive；要還原，從「檔案」App 選那個檔匯入。</p>' +
+      '<div class="btns"><button class="btn btn-primary" type="button" id="do-export">匯出檔案</button>' +
+      '<button class="btn" type="button" id="do-import">匯入檔案</button></div>' +
+      '<p class="set-meta">目前：' + d.doctors.length + ' 位醫師 · ' + d.procedures.length +
+      ' 個術式 · ' + d.cards.length + ' 張筆記 · ' + Store.imageCount() + ' 張圖</p>' +
+      '<p class="set-warn">匯出檔把圖片一起包在裡面。如果卡片裡放過病人的照片，' +
+      '那個檔案就帶著它——放上任何雲端之前先想一下。</p>' +
+      '<div class="btns"><button class="btn btn-danger" type="button" id="do-reset">' +
+      '重設回預設內容</button></div></section>' +
+
+      '<section class="set-block"><h2>外觀</h2>' +
+      '<div class="seg" role="group" aria-label="配色">' +
+      ['auto', 'light', 'dark'].map(function (m) {
+        return '<button type="button" class="seg-b" data-theme="' + m + '">' +
+          { auto: '自動', light: '淺色', dark: '深色' }[m] + '</button>';
+      }).join('') + '</div></section>' +
+
+      '<section class="set-block"><h2>關於</h2>' +
+      '<p class="set-note">資料來源：一般外科住院醫師共享備忘錄「擺位共筆」。</p>' +
+      '<p class="set-note">這裡記的是各位主治醫師的個人偏好，不是診療指引，也不是台大醫院的正式文件。' +
+      '臨床決策請依當台刀的實際情況與主治醫師指示。</p>' +
+      '<p class="set-note">原共筆中 27 張刀房實拍照片含可辨識的病人影像，未收錄，' +
+      '在內文中以一行說明標示。</p>' +
+      '<p class="set-meta" id="ver"></p></section>';
+  }
+
+  /* 匯入：先把會發生什麼事講清楚，再讓使用者選 */
+  function askImport(j) {
+    var s = Store.summarize(j);
+    var L = { doctors: '醫師', procedures: '術式', cards: '筆記' };
+    var rows = Object.keys(L).map(function (k) {
+      return '<tr><th>' + L[k] + '</th><td>' + s.now[k] + '</td><td>' + s.file[k] +
+        '</td><td>＋' + s.add[k] + '　覆蓋 ' + s.hit[k] + '</td></tr>';
+    }).join('');
+    openSheet('要怎麼匯入？',
+      '<table class="difftab"><thead><tr><th></th><th>現在</th><th>檔案</th>' +
+      '<th>合併後</th></tr></thead><tbody>' + rows +
+      '<tr><th>圖片</th><td>' + s.now.images + '</td><td>' + s.file.images + '</td><td>—</td></tr>' +
+      '</tbody></table>' +
+      '<p class="sheet-note"><b>取代</b>＝丟掉裝置上現有的全部，只留檔案裡的。<br>' +
+      '<b>合併</b>＝同一筆以檔案為準覆蓋，檔案沒有的保留下來，不會刪東西。</p>',
+      [{ label: '合併', cls: 'btn-primary', fn: function () { doImport(j, 'merge'); } },
+       { label: '取代全部', cls: 'btn-danger', fn: function () { doImport(j, 'replace'); } }]);
+  }
+
+  function doImport(j, mode) {
+    closeSheet();
+    Store.importData(j, mode).then(function () {
+      reindex(); render();
+      UI.toast(mode === 'replace' ? '已取代全部內容。' : '已合併匯入。');
+    }).catch(function (e) { UI.toast('匯入失敗：' + e.message); });
+  }
+
+  function exportFile() {
+    Store.exportObject().then(function (o) {
+      var blob = new Blob([JSON.stringify(o)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '外科手術筆記-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      UI.toast('已匯出，把它存進 Google Drive 就好。');
     });
   }
-  Cloud.flush();
-  render();
+
+  /* ───────── 底部彈出面板 ───────── */
+
+  var sheetActions = [];
+  function openSheet(title, body, actions) {
+    sheetActions = actions || [];
+    $('#sheet').innerHTML = '<div class="sheet-in" role="dialog" aria-modal="true" aria-label="' +
+      esc(title) + '"><h2 class="sheet-hd">' + esc(title) + '</h2>' + body +
+      '<div class="btns sheet-btns">' +
+      sheetActions.map(function (a, i) {
+        return '<button type="button" class="btn ' + (a.cls || '') + '" data-act="' + i + '">' +
+          esc(a.label) + '</button>';
+      }).join('') +
+      '<button type="button" class="btn" data-act="x">取消</button></div></div>';
+    $('#sheet').hidden = false;
+    document.body.classList.add('locked');
+  }
+  function closeSheet() {
+    $('#sheet').hidden = true;
+    $('#sheet').innerHTML = '';
+    document.body.classList.remove('locked');
+  }
+  window.SN.openSheet = openSheet;
+  window.SN.closeSheet = closeSheet;
+
+  /* ───────── 燈箱 ───────── */
+
+  function openLightbox(id) {
+    var url = Store.imageUrl(id);
+    if (!url) return;
+    $('#lb-slot').innerHTML = '<img id="lb-img" src="' + url + '" alt="放大的手繪示意圖">';
+    $('#lb').hidden = false;
+    document.body.classList.add('locked');
+    $('#lb-close').focus();
+  }
+  function closeLightbox() {
+    $('#lb').hidden = true;
+    $('#lb-slot').innerHTML = '';
+    document.body.classList.remove('locked');
+  }
+
+  /* ───────── 配色 ───────── */
+
+  function applyTheme(m) {
+    theme = m;
+    if (m === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', m);
+    try { localStorage.setItem('sn-theme', m); } catch (e) { }
+    syncTheme();
+  }
+  function syncTheme() {
+    Array.prototype.forEach.call(document.querySelectorAll('.seg-b'), function (b) {
+      var on = b.dataset.theme === theme;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  /* ───────── 路由 ───────── */
+
+  function parse() {
+    var raw = location.hash.replace(/^#\/?/, '');
+    try { raw = decodeURIComponent(raw); } catch (e) { }
+    var h = raw.split('/').filter(Boolean);
+    if (!h.length) return { tab: 'doctors' };
+    if (h[0] === 'edit' || h[0] === 'new') return { mode: h[0], kind: h[1], id: h[2], id2: h[3] };
+    if (h[0] === 'd') return { tab: 'doctors', kind: 'd', id: h[1] };
+    if (h[0] === 'p') return { tab: 'procs', kind: 'p', id: h[1] };
+    if (h[0] === 'c') return { tab: 'card', kind: 'c', id: h[1] };
+    if (h[0] === 'doctors') return { tab: 'doctors', w: h[1] };
+    return { tab: TABS.map(function (t) { return t.id; }).indexOf(h[0]) >= 0 ? h[0] : 'doctors' };
+  }
+
+  function render() {
+    var r = parse();
+    UI.resetFig();
+    var main = $('#main'), body = '', deep = !!r.kind || !!r.mode;
+
+    try {
+      if (r.mode) body = Edit.view(r);
+      else if (r.kind === 'd') body = viewDoctor(r.id);
+      else if (r.kind === 'p') body = viewProc(r.id);
+      else if (r.kind === 'c') body = viewCard(r.id);
+      else if (r.tab === 'procs') body = viewProcs();
+      else if (r.tab === 'search') body = viewSearch();
+      else if (r.tab === 'settings') body = viewSettings();
+      else body = viewDoctors(r.w);
+    } catch (e) {
+      body = '<header class="detail-hd"><h1 class="detail-name">出了點問題</h1>' +
+        '<p class="detail-full">' + esc(e.message) + '</p></header>';
+    }
+
+    main.className = 'main' + (deep ? ' is-deep' : '') + ' view-' + (r.mode || r.kind || r.tab);
+    main.innerHTML = body;
+    $('#backbtn').hidden = !deep;
+
+    var active = r.mode ? '' : (r.kind === 'c' ? lastTab : r.tab);
+    if (!r.kind && !r.mode) lastTab = r.tab;
+    if (r.kind === 'd') { lastTab = 'doctors'; active = 'doctors'; }
+    if (r.kind === 'p') { lastTab = 'procs'; active = 'procs'; }
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (b) {
+      var on = b.dataset.tab === active;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-current', on ? 'page' : 'false');
+    });
+
+    syncTheme();
+    if (r.mode) Edit.bind(r);
+    var v = $('#ver');
+    if (v) v.textContent = '版本 ' + (window.SN_VERSION || '—');
+    window.scrollTo(0, 0);
+    if (r.tab === 'search' && !r.kind) { var q = $('#q'); if (q) q.focus(); }
+  }
+
+  /* ───────── 啟動 ───────── */
+
+  function boot() {
+    $('#tabbar').innerHTML = TABS.map(function (t) {
+      return '<a class="tab" href="#/' + t.id + '" data-tab="' + t.id + '">' +
+        icon(t.icon) + '<span>' + t.label + '</span></a>';
+    }).join('');
+    $('#backbtn').innerHTML = icon('back') + '<span>返回</span>';
+    $('#lb-close').innerHTML = icon('close');
+
+    document.addEventListener('click', function (e) {
+      var f = e.target.closest('.fig-btn');
+      if (f) { openLightbox(f.dataset.img); return; }
+      if (e.target.closest('#lb-close') || e.target.id === 'lb') { closeLightbox(); return; }
+
+      var a = e.target.closest('#sheet [data-act]');
+      if (a) {
+        if (a.dataset.act === 'x') closeSheet();
+        else sheetActions[+a.dataset.act].fn();
+        return;
+      }
+      if (e.target.id === 'sheet') { closeSheet(); return; }
+
+      var s = e.target.closest('.seg-b');
+      if (s) { applyTheme(s.dataset.theme); return; }
+      if (e.target.closest('#do-export')) { exportFile(); return; }
+      if (e.target.closest('#do-import')) { $('#file').click(); return; }
+      if (e.target.closest('#do-reset')) {
+        openSheet('重設回預設內容？',
+          '<p class="sheet-note">裝置上所有的修改與新增都會消失，回到 repo 裡的 ' +
+          '<code>data/seed.json</code>。這個動作沒辦法復原——先匯出一份再做。</p>',
+          [{ label: '重設', cls: 'btn-danger', fn: function () {
+            closeSheet();
+            Store.reset().then(function () {
+              reindex(); render(); UI.toast('已重設回預設內容。');
+            });
+          } }]);
+        return;
+      }
+    });
+
+    $('#file').addEventListener('change', function (e) {
+      var f = e.target.files[0];
+      e.target.value = '';
+      if (!f) return;
+      f.text().then(function (t) {
+        var j;
+        try { j = JSON.parse(t); } catch (err) { throw new Error('這不是一個 JSON 檔。'); }
+        if (!Store.valid(j)) throw new Error('這個檔不是外科手術筆記的匯出檔。');
+        askImport(j);
+      }).catch(function (err) { UI.toast('讀不到：' + err.message); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!$('#lb').hidden) closeLightbox();
+      else if (!$('#sheet').hidden) closeSheet();
+    });
+    document.addEventListener('input', function (e) {
+      if (e.target.id === 'q') runSearch(e.target.value);
+    });
+    $('#backbtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (history.length > 1) history.back(); else location.hash = '#/' + lastTab;
+    });
+
+    try { applyTheme(localStorage.getItem('sn-theme') || 'auto'); } catch (e) { applyTheme('auto'); }
+
+    Store.ready().then(function () {
+      reindex();
+      window.addEventListener('hashchange', render);
+      render();
+      document.body.classList.remove('booting');
+    }).catch(function (e) {
+      document.body.classList.remove('booting');
+      $('#main').innerHTML = '<header class="detail-hd"><h1 class="detail-name">打不開資料</h1>' +
+        '<p class="detail-full">' + esc(e.message) + '</p></header>';
+    });
+  }
+
+  boot();
 })();

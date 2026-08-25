@@ -1,12 +1,12 @@
 {
   "name": "外科手術筆記",
   "short_name": "手術筆記",
-  "description": "台大一般外科：哪位醫師開哪台刀，擺位、打洞、器械與步驟的習慣筆記。",
+  "description": "台大一般外科：哪位醫師開哪台刀，擺位、打洞、器械與步驟的習慣筆記。內容可自行編輯、匯出匯入。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#EEEEEE",
-  "theme_color": "#efece1",
+  "theme_color": "#F4F1E9",
   "lang": "zh-Hant",
   "icons": [
     {
