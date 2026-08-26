@@ -592,8 +592,9 @@
    "fields": {
     "position": "雙手開",
     "incision": "[[img:洪基翔-hernia-1]]",
-    "steps": "High ligation 縫+綁兩針\nMesh plug 圓錐狀，頂端和底部各縫一針\nMesh只釘一針（conjoint tendon的地方）\n棉卷 + 宜拉\n\n約翰hernia\n恥毛上緣劃橫的傷口，約三指幅\nMesh plug: 剪一半（長條狀），捲起來圓針粗縫綁其中一端，然後反折成plug 狀\nMesh: 長條狀的一半再剪一半，折起來後中間剪一個口\n\n[[img:洪基翔-hernia-2]]",
-    "closure": "Skin關nylon"
+    "steps": "High ligation 縫+綁兩針\nMesh plug 圓錐狀，頂端和底部各縫一針\nMesh只釘一針（conjoint tendon的地方）\n\n約翰hernia\n恥毛上緣劃橫的傷口，約三指幅\nMesh plug: 剪一半（長條狀），捲起來圓針粗縫綁其中一端，然後反折成plug 狀\nMesh: 長條狀的一半再剪一半，折起來後中間剪一個口\n\n[[img:洪基翔-hernia-2]]",
+    "closure": "Skin關nylon",
+    "dressing": "棉卷 + 宜拉"
    }
   },
   {
@@ -1047,9 +1048,10 @@
     "position": "雙手收 \n換枕頭（neck extension）\n頭架歪向麻醉科\n中單架國旗\n神經刺激器走病人左手邊\n先拿酒棉消，插完拿3M貼著固定\nMedtronic兩根針的：插在胸骨上\nInomed一根針一個貼片的：插在胸口，貼在左肩，或兩個都放左肩\n消毒消下巴到nipple，用chlorhexidine\n老師喜歡大燈在正上方，小燈斜的照進去\n鋪完單後兩邊脖子塞紗布",
     "incision": "坤源：約六公分的傷口\n明勳：傷口越劃越小",
     "instrument": "手控電刀 \nCovidien ligasure handpieces\nClip medium\n坤源：多Bipolar\nInterceed 3*4 inch or Berrigel\nMedtronic or Inomed 神經刺激器",
-    "steps": "美容膠\n坤源：散紗+宜拉；明勳：散紗 + 3M\n買帳：坤源副甲狀腺全切 82019B00; Transoral買的和一般甲狀腺切除一樣\nPara部分切，坤源：鈣片1# TID, vit D 2# QD\niPTH: 坤源通常pre/10, 明勳通常pre/5/10",
+    "steps": "買帳：坤源副甲狀腺全切 82019B00; Transoral買的和一般甲狀腺切除一樣\nPara部分切，坤源：鈣片1# TID, vit D 2# QD\niPTH: 坤源通常pre/10, 明勳通常pre/5/10",
     "billing": "82019B00",
-    "closure": "v906 vicryl\n5-0 monocryl"
+    "closure": "v906 vicryl\n5-0 monocryl",
+    "dressing": "美容膠\n坤源：散紗+宜拉；明勳：散紗 + 3M"
    }
   },
   {
