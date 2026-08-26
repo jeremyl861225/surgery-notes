@@ -76,7 +76,7 @@
   {
    "id": "d01",
    "name": "何明志",
-   "empId": "",
+   "empId": "004560",
    "wards": [
     "9B"
    ],
@@ -221,7 +221,7 @@
   {
    "id": "d16",
    "name": "蕭亦翔",
-   "empId": "",
+   "empId": "115368",
    "wards": [
     "9B"
    ],
@@ -296,8 +296,8 @@
   {
    "id": "p05",
    "key": "DPSP",
-   "en": "Distal pancreatectomy with spleen preservation",
-   "zh": "遠端胰臟切除併保脾",
+   "en": "Distal pancreatectomy and splenectomy",
+   "zh": "遠端胰臟切除併脾臟切除",
    "general": {}
   },
   {
@@ -508,8 +508,8 @@
   {
    "id": "p33",
    "key": "Whipple+DPSP",
-   "en": "Whipple operation + Distal pancreatectomy with spleen preservation",
-   "zh": "胰十二指腸切除 ＋ 遠端胰臟切除併保脾",
+   "en": "Whipple operation + Distal pancreatectomy and splenectomy",
+   "zh": "胰十二指腸切除 ＋ 遠端胰臟切除併脾臟切除",
    "general": {}
   }
  ],
