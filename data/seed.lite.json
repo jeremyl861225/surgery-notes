@@ -592,7 +592,8 @@
    "fields": {
     "position": "雙手開",
     "incision": "[[img:洪基翔-hernia-1]]",
-    "steps": "High ligation 縫+綁兩針\nMesh plug 圓錐狀，頂端和底部各縫一針\nMesh只釘一針（conjoint tendon的地方）\nSkin關nylon\n棉卷 + 宜拉\n\n約翰hernia\n恥毛上緣劃橫的傷口，約三指幅\nMesh plug: 剪一半（長條狀），捲起來圓針粗縫綁其中一端，然後反折成plug 狀\nMesh: 長條狀的一半再剪一半，折起來後中間剪一個口\n\n[[img:洪基翔-hernia-2]]"
+    "steps": "High ligation 縫+綁兩針\nMesh plug 圓錐狀，頂端和底部各縫一針\nMesh只釘一針（conjoint tendon的地方）\n棉卷 + 宜拉\n\n約翰hernia\n恥毛上緣劃橫的傷口，約三指幅\nMesh plug: 剪一半（長條狀），捲起來圓針粗縫綁其中一端，然後反折成plug 狀\nMesh: 長條狀的一半再剪一半，折起來後中間剪一個口\n\n[[img:洪基翔-hernia-2]]",
+    "closure": "Skin關nylon"
    }
   },
   {
@@ -608,8 +609,9 @@
     "position": "雙手開\n沒有大單",
     "incision": "[[photo]]\n[[img:陳建嘉-李志元-pd_tube_implantation-2]]",
     "instrument": "手控電刀 \n…",
-    "steps": "沿著預設劃刀和鋼針走的tunnel方向打local\n劃約三指幅的垂直傷口，小肌勾幫忙，一路開到fascia，pean幫忙撥開rectus muscle\n腹膜用組織剪剪開，拿三支pean夾洞口三個角\n5/8 1-0藉pean夾的三個角，縫purse string\nPD管中間放stylet，放進腹腔裡，往病人腳側走。拿灌滿水的空針（不要針心）接管子，確定入水順，再把空針+管子放到側腹低處，拿彎盆接水，確定出水順\n把purse string綁起來，注意cuff要盡量靠近腹膜洞口。綁完後只剪帶針那端的線，另一端pean吊著\n再拿一支pean，從catheter處往頭側製造soft tissue的tunnel。拿電刀電pean tip，大right angle從tip端伸進去，把catheter送給right angle再夾出來\n把管子的distal端接到鋼針上，用silk綁住接合處，不要剪線\n鋼針製造soft tissue tunnel，沿著剛才打local的tract往側腹走，要出體表的時候拿線剪的指環幫忙讓針尖突出體表。整個鋼針拉出體表，確定cuff還在皮下\n剪斷catheter-鋼針接合處，拿金屬轉接頭（有兩顆）固定在catheter distal端，然後給腹膜透析組的學姐\n刷手會剪很多條狀surgicel，幾條繞在catheter出體表處，幾條鋪在入腹腔處\n應該是這時候把吊著的5/8剪掉。再拿5/8剩線，horizontal matress關fascia，再關subcutaneous\nNylon 3-0關skin",
-    "note": "#PD_tube_implantation"
+    "steps": "沿著預設劃刀和鋼針走的tunnel方向打local\n劃約三指幅的垂直傷口，小肌勾幫忙，一路開到fascia，pean幫忙撥開rectus muscle\n腹膜用組織剪剪開，拿三支pean夾洞口三個角\n5/8 1-0藉pean夾的三個角，縫purse string\nPD管中間放stylet，放進腹腔裡，往病人腳側走。拿灌滿水的空針（不要針心）接管子，確定入水順，再把空針+管子放到側腹低處，拿彎盆接水，確定出水順\n把purse string綁起來，注意cuff要盡量靠近腹膜洞口。綁完後只剪帶針那端的線，另一端pean吊著\n再拿一支pean，從catheter處往頭側製造soft tissue的tunnel。拿電刀電pean tip，大right angle從tip端伸進去，把catheter送給right angle再夾出來\n把管子的distal端接到鋼針上，用silk綁住接合處，不要剪線\n鋼針製造soft tissue tunnel，沿著剛才打local的tract往側腹走，要出體表的時候拿線剪的指環幫忙讓針尖突出體表。整個鋼針拉出體表，確定cuff還在皮下\n剪斷catheter-鋼針接合處，拿金屬轉接頭（有兩顆）固定在catheter distal端，然後給腹膜透析組的學姐\n刷手會剪很多條狀surgicel，幾條繞在catheter出體表處，幾條鋪在入腹腔處",
+    "note": "#PD_tube_implantation",
+    "closure": "應該是這時候把吊著的5/8剪掉。再拿5/8剩線，horizontal matress關fascia，再關subcutaneous\nNylon 3-0關skin"
    }
   },
   {
@@ -625,7 +627,8 @@
     "position": "雙手開\n沒有大單\n管子露出一點點就好（一開始先拿綠單蓋住整個管子）",
     "incision": "[[img:陳建嘉-李志元-pd_tube_removal-1]]",
     "instrument": "手控電刀 \n…",
-    "steps": "先摸peritoneal cuff的位置。應該會在垂直傷口(1) 的下方，打完local之後可以照previous incision scar下刀（劃開上半段就好，通常傷口不用太大）\n一邊往下dissect一邊摸，確認管子的位置。\n管子露出來之後拿pean夾兩端，中間用線剪剪斷。\n往subcutaneous端的pean可以放開，往peritoneum端用左手拿著輕微保持tension（太用力rectus muscle可能會流血），右手拿電刀沿著cuff電，不要電到讓fascia變很大一個洞\n整圈電開之後catheter拿出來，用5/8圓針縫fascia（一針horizontal mattress）\n5/8圓針縫subcutaneous fat，一針\nNylon關skin，兩針\n\n接下來處理subcutaneous 端。先用pean夾住catheter，遠端剪掉當污染區\n下刀沿著管子做小小的橫向的fusiform incision（2）\n電刀沿著cuff電開到整個catheter可以移除\n直接用nylon大針關兩針"
+    "steps": "先摸peritoneal cuff的位置。應該會在垂直傷口(1) 的下方，打完local之後可以照previous incision scar下刀（劃開上半段就好，通常傷口不用太大）\n一邊往下dissect一邊摸，確認管子的位置。\n管子露出來之後拿pean夾兩端，中間用線剪剪斷。\n往subcutaneous端的pean可以放開，往peritoneum端用左手拿著輕微保持tension（太用力rectus muscle可能會流血），右手拿電刀沿著cuff電，不要電到讓fascia變很大一個洞\n\n接下來處理subcutaneous 端。先用pean夾住catheter，遠端剪掉當污染區\n下刀沿著管子做小小的橫向的fusiform incision（2）\n電刀沿著cuff電開到整個catheter可以移除",
+    "closure": "整圈電開之後catheter拿出來，用5/8圓針縫fascia（一針horizontal mattress）\n5/8圓針縫subcutaneous fat，一針\nNylon關skin，兩針\n\n直接用nylon大針關兩針"
    }
   },
   {
@@ -737,8 +740,8 @@
     "position": "",
     "incision": "",
     "instrument": "要膽囊鉗夾香菇頭",
-    "steps": "左下extended wound 關法： 5/8先continue縫peritoneum+一層fascia，從一端A縫到另一端B後用固定針線或vicryl定一針，同一條5/8再continue縫另一層fascia回到原本A端和一開始自己的尾巴綁起來",
-    "note": "#LAR"
+    "note": "#LAR",
+    "closure": "左下extended wound 關法： 5/8先continue縫peritoneum+一層fascia，從一端A縫到另一端B後用固定針線或vicryl定一針，同一條5/8再continue縫另一層fascia回到原本A端和一開始自己的尾巴綁起來"
    }
   },
   {
@@ -900,7 +903,8 @@
    ],
    "updatedAt": "2025-10-08T10:38:46",
    "fields": {
-    "note": "備物：\nBard Mesh (monofila. polypropylene) 10x14”\nSurgilon 2包\n癒立安\n\nPlug: 兩個圓錐重疊縫\n\nWound: 2-0 vicryl -> 繡花 -> exofin"
+    "note": "備物：\nBard Mesh (monofila. polypropylene) 10x14”\nSurgilon 2包\n癒立安\n\nPlug: 兩個圓錐重疊縫",
+    "closure": "Wound: 2-0 vicryl -> 繡花 -> exofin"
    }
   },
   {
@@ -990,7 +994,8 @@
    "fields": {
     "position": "雙手微開\n男生Scrotum底下要塞綠單",
     "incision": "[[img:葉啓娟-heniorrhaphy-1]]",
-    "steps": "沿著上述land mark劃刀，一路打開直到scarpa fascia\n找到inguinal ligament，把transversalis muscle fascia和inguinal ligament分開\n找到conjoint tendon\n找到external ring ，拿pean夾起來，用local做water dissection\n拿pean吊起external ring兩邊，電開，用metzenbaum往上打開到internal ring\n用鈍剪刀剝inguinal canal裡面的東西，剝到底讓整個content可以從底下抓起來\n找spermatic cord，辨認indirect or direct or hydrocele\n用nelaton loop起來\n（Direct type）\n辨認海氏三角的解剖構造\n把hernia形成的帽子抓起來，沿著整圈把transversalis muscle fascia電開\n確認defect大小，根據大小剪mesh。大概是8 cm * （量到的公分 + 2 cm）\n先做plug（三塊相疊，在正中間縫一針；接著右手抓出尖角送給左手，在下方縫一圈然後拿鑷子夾住plug尖端，在鑷子下方綁線、前後繞再綁線\n\nMesh plug只塞一個（看indirect跟direct哪一個比較prominent）\n把plug塞進direct / indirect的洞裡面，把中間那層縫在周圍soft tissue上，要縫三針\n先在mesh上縫u字型，釘在conjoint tendon附近；接著縫兩邊，靠inguinal ligament側要do - mi - so。如果遇到神經，要把mesh鋪在神經下\n\ncontinuous 5/8圓針把inguinal canal縫起來\n4-0 mono關scarpa fascia，約三針\n4-0 mono invert關subcute，約三針\n繡花，不打結，貼美容膠後貼皮剪掉線\n\n[[img:葉啓娟-heniorrhaphy-2]]"
+    "steps": "沿著上述land mark劃刀，一路打開直到scarpa fascia\n找到inguinal ligament，把transversalis muscle fascia和inguinal ligament分開\n找到conjoint tendon\n找到external ring ，拿pean夾起來，用local做water dissection\n拿pean吊起external ring兩邊，電開，用metzenbaum往上打開到internal ring\n用鈍剪刀剝inguinal canal裡面的東西，剝到底讓整個content可以從底下抓起來\n找spermatic cord，辨認indirect or direct or hydrocele\n用nelaton loop起來\n（Direct type）\n辨認海氏三角的解剖構造\n把hernia形成的帽子抓起來，沿著整圈把transversalis muscle fascia電開\n確認defect大小，根據大小剪mesh。大概是8 cm * （量到的公分 + 2 cm）\n先做plug（三塊相疊，在正中間縫一針；接著右手抓出尖角送給左手，在下方縫一圈然後拿鑷子夾住plug尖端，在鑷子下方綁線、前後繞再綁線\n\nMesh plug只塞一個（看indirect跟direct哪一個比較prominent）\n把plug塞進direct / indirect的洞裡面，把中間那層縫在周圍soft tissue上，要縫三針\n先在mesh上縫u字型，釘在conjoint tendon附近；接著縫兩邊，靠inguinal ligament側要do - mi - so。如果遇到神經，要把mesh鋪在神經下\n\n[[img:葉啓娟-heniorrhaphy-2]]",
+    "closure": "continuous 5/8圓針把inguinal canal縫起來\n4-0 mono關scarpa fascia，約三針\n4-0 mono invert關subcute，約三針\n繡花，不打結，貼美容膠後貼皮剪掉線"
    }
   },
   {
@@ -1023,7 +1028,8 @@
    "fields": {
     "incision": "[[img:李柏居-feeding_jejunostomy-1]]",
     "instrument": "手控電刀",
-    "steps": "找到treitz 下面20 cm，purse string 三圈，綁線處要是三角形三個點，pean吊起來\n開皮膚，long mosquito進去對接，feeding tube過皮膚\n電開小腸，feeding tube進去，放45 cm（確定往distal走，空針重力給水確定流得順）\nPeritonization，先從遠的開始，柏居喜歡從NG洞口往外縫；綁線，小心線不能斷！！！\n體外固定feeding tube\n關fascia"
+    "steps": "找到treitz 下面20 cm，purse string 三圈，綁線處要是三角形三個點，pean吊起來\n開皮膚，long mosquito進去對接，feeding tube過皮膚\n電開小腸，feeding tube進去，放45 cm（確定往distal走，空針重力給水確定流得順）\nPeritonization，先從遠的開始，柏居喜歡從NG洞口往外縫；綁線，小心線不能斷！！！\n體外固定feeding tube",
+    "closure": "關fascia"
    }
   },
   {
@@ -1041,8 +1047,9 @@
     "position": "雙手收 \n換枕頭（neck extension）\n頭架歪向麻醉科\n中單架國旗\n神經刺激器走病人左手邊\n先拿酒棉消，插完拿3M貼著固定\nMedtronic兩根針的：插在胸骨上\nInomed一根針一個貼片的：插在胸口，貼在左肩，或兩個都放左肩\n消毒消下巴到nipple，用chlorhexidine\n老師喜歡大燈在正上方，小燈斜的照進去\n鋪完單後兩邊脖子塞紗布",
     "incision": "坤源：約六公分的傷口\n明勳：傷口越劃越小",
     "instrument": "手控電刀 \nCovidien ligasure handpieces\nClip medium\n坤源：多Bipolar\nInterceed 3*4 inch or Berrigel\nMedtronic or Inomed 神經刺激器",
-    "steps": "v906 vicryl\n5-0 monocryl\n美容膠\n坤源：散紗+宜拉；明勳：散紗 + 3M\n買帳：坤源副甲狀腺全切 82019B00; Transoral買的和一般甲狀腺切除一樣\nPara部分切，坤源：鈣片1# TID, vit D 2# QD\niPTH: 坤源通常pre/10, 明勳通常pre/5/10",
-    "billing": "82019B00"
+    "steps": "美容膠\n坤源：散紗+宜拉；明勳：散紗 + 3M\n買帳：坤源副甲狀腺全切 82019B00; Transoral買的和一般甲狀腺切除一樣\nPara部分切，坤源：鈣片1# TID, vit D 2# QD\niPTH: 坤源通常pre/10, 明勳通常pre/5/10",
+    "billing": "82019B00",
+    "closure": "v906 vicryl\n5-0 monocryl"
    }
   },
   {
@@ -1108,7 +1115,8 @@
     "position": "雙手收 \n架腳 （大腿水平於地面，以避免擋到手術空間）\n[[photo]]\n胸約\n要墊肩（因為要頭低腳高，避免住上滑；各種線要塞進凹槽）\n[[photo]]\n用中單架國旗\n[[photo]]\n\n[[img:林本仁-lar-4]]",
     "incision": "肚臍：藍色trocar，其他：紫色\n[[img:林本仁-lar-5]]\n\n[[photo]]\n\n[[photo]]",
     "instrument": "手控電刀\nCovidien ligasure\nEthicon Echelon GIA\nSurgiWrap + AbsorbaTack 釘防沾黏\n29mm Echelon powered stapler電動香菇頭",
-    "steps": "從lesser sac去到胃後面找到胰臟，胰臟下方找IMV斷掉（白釘或clip）\n分splenic flexure（從外側做到內側）\n找mesosigmoid裡面的IMA，白釘斷掉\n機器人手臂134要在LE之間\n[[photo]]\n老師達文西結束會自己跑去下面消毒anus\n黑釘切rectum\n切完rectum會延伸肚臍傷口，腸子拉出來斷血管（要把marginal artery留下來）、電刀斷proximal端、接香菇頭、丟回去\n關肚臍：5/8圓針吊上面，1-0 vicryl從下面關上來；2-0monocryl皮下，3-0 Nylon關皮\n關其他洞：5/8關fascia，3-0 Nylon關皮"
+    "steps": "從lesser sac去到胃後面找到胰臟，胰臟下方找IMV斷掉（白釘或clip）\n分splenic flexure（從外側做到內側）\n找mesosigmoid裡面的IMA，白釘斷掉\n機器人手臂134要在LE之間\n[[photo]]\n老師達文西結束會自己跑去下面消毒anus\n黑釘切rectum\n切完rectum會延伸肚臍傷口，腸子拉出來斷血管（要把marginal artery留下來）、電刀斷proximal端、接香菇頭、丟回去",
+    "closure": "關肚臍：5/8圓針吊上面，1-0 vicryl從下面關上來；2-0monocryl皮下，3-0 Nylon關皮\n關其他洞：5/8關fascia，3-0 Nylon關皮"
    }
   }
  ],
