@@ -4,7 +4,7 @@
  * 這支只能刪自己前綴的快取，絕不可以 keys() 全清（會把別的 App 弄壞）。
  */
 const PREFIX = 'surgery-notes-';
-const CACHE = PREFIX + 'v12';
+const CACHE = PREFIX + 'v13';
 const SHELL = [
   './', './index.html',
   './css/app.css',

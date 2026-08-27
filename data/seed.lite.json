@@ -108,6 +108,13 @@
    "general": {}
   },
   {
+   "name": "吳耀銘",
+   "empId": "006680",
+   "wards": [],
+   "id": "d21",
+   "general": {}
+  },
+  {
    "id": "d05",
    "name": "周宗欣",
    "empId": "009521",
@@ -253,6 +260,13 @@
    "general": {}
   },
   {
+   "name": "陳柏達",
+   "empId": "100220",
+   "wards": [],
+   "id": "d22",
+   "general": {}
+  },
+  {
    "id": "d20",
    "name": "黃約翰",
    "empId": "009025",
@@ -327,15 +341,8 @@
    "general": {}
   },
   {
-   "id": "p10",
-   "key": "Hernia",
-   "en": "Hernia repair",
-   "zh": "疝氣修補",
-   "general": {}
-  },
-  {
    "id": "p11",
-   "key": "Heniorrhaphy",
+   "key": "Herniorrhaphy",
    "en": "Herniorrhaphy",
    "zh": "疝氣修補術",
    "general": {}
@@ -354,9 +361,8 @@
    "zh": "腹腔鏡膽囊切除",
    "general": {
     "position": "右開左收\n胸約\n頭高腳低\n右高左低",
-    "incision": "[[img:lc-2]]\n第一個洞打肚臍\n第二個洞打肝臟下緣，round ligament的右側（健暉打直的）\n第三個洞，先找CBD，把CBD擺在第二和第三個洞中間，洞打subcostal的走向\n第四個洞隨便，大約ant axillary line左右\n\n何爸：\n第一個洞肚臍打below umbilicus橫的（除非非常確定要extend）\n第二個洞打round ligament右側，和GB等高\n（假想第四個洞，打在和umbilicus等高，ant axillary line）\n第三個洞打mid clavicular，第四個洞和第二個洞連線中間\n\n洞和洞之間大約5-6公分\n\n大哥/柏達：\n第一個洞打直的，transumbilicus",
-    "instrument": "約翰喜歡endoBipolar（且喜歡retrograde做，最後再斷cystic duct）",
-    "steps": "健暉\n送刀前打的ICG 15mg，抽稀釋液5ml，稀釋後抽3ml，叫刀前打\n老師喜歡開四個洞，用三個洞老師會說：「我們住院醫師都好厲害，可以用三個洞就開LC！」 （但我忘了打在哪里，下次補上）\n要放右肝下CWV\n\nGB polyp > 1 cm才建議開\n\n柏居打洞（三個12-5-5）\n[[img:lc-3]]\n\n鏡子位置=肚臍：希望離xyphoid一個手（手掌+手指）->再來決定打肚臍上面還是下面\n右手port：midline（hepatoduodenal lig的位置）和subcostal margin的中分線，在這條中分線上從scope看肝臟下緣的地方打洞\n左手port：scope往膽囊方向看，在這個scope的軸線往lateral的地方選\n注：以前開四個洞的時候是1+2+綠星星（肚臍高度和ant axillary midline交叉點+和2的中點），現在三個洞的左手port就區這兩個的中間區域"
+    "incision": "[[img:lc-2]]\n第一個洞打肚臍\n第二個洞打肝臟下緣，round ligament的右側（健暉打直的）\n第三個洞，先找CBD，把CBD擺在第二和第三個洞中間，洞打subcostal的走向\n第四個洞隨便，大約ant axillary line左右\n\n洞和洞之間大約5-6公分",
+    "steps": "GB polyp > 1 cm才建議開"
    }
   },
   {
@@ -476,13 +482,6 @@
    "general": {}
   },
   {
-   "id": "p29",
-   "key": "Thyroid",
-   "en": "Thyroidectomy",
-   "zh": "甲狀腺切除",
-   "general": {}
-  },
-  {
    "id": "p30",
    "key": "Thyroidectomy",
    "en": "Thyroidectomy",
@@ -582,7 +581,7 @@
    "doctorIds": [
     "d13"
    ],
-   "procedureId": "p10",
+   "procedureId": "p11",
    "approach": [
     "Open"
    ],
@@ -896,7 +895,7 @@
    "doctorIds": [
     "d07"
    ],
-   "procedureId": "p10",
+   "procedureId": "p11",
    "approach": [
     "Open"
    ],
@@ -941,7 +940,7 @@
    "doctorIds": [
     "d03"
    ],
-   "procedureId": "p29",
+   "procedureId": "p30",
    "approach": [
     "Transoral"
    ],
@@ -1117,6 +1116,77 @@
     "instrument": "手控電刀\nCovidien ligasure\nEthicon Echelon GIA\nSurgiWrap + AbsorbaTack 釘防沾黏\n29mm Echelon powered stapler電動香菇頭",
     "steps": "從lesser sac去到胃後面找到胰臟，胰臟下方找IMV斷掉（白釘或clip）\n分splenic flexure（從外側做到內側）\n找mesosigmoid裡面的IMA，白釘斷掉\n機器人手臂134要在LE之間\n[[photo]]\n老師達文西結束會自己跑去下面消毒anus\n黑釘切rectum\n切完rectum會延伸肚臍傷口，腸子拉出來斷血管（要把marginal artery留下來）、電刀斷proximal端、接香菇頭、丟回去",
     "closure": "關肚臍：5/8圓針吊上面，1-0 vicryl從下面關上來；2-0monocryl皮下，3-0 Nylon關皮\n關其他洞：5/8關fascia，3-0 Nylon關皮"
+   }
+  },
+  {
+   "id": "c38",
+   "doctorIds": [
+    "d01"
+   ],
+   "procedureId": "p13",
+   "approach": [
+    "Scope"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "incision": "何爸：\n第一個洞肚臍打below umbilicus橫的（除非非常確定要extend）\n第二個洞打round ligament右側，和GB等高\n（假想第四個洞，打在和umbilicus等高，ant axillary line）\n第三個洞打mid clavicular，第四個洞和第二個洞連線中間"
+   }
+  },
+  {
+   "id": "c39",
+   "doctorIds": [
+    "d21",
+    "d22"
+   ],
+   "procedureId": "p13",
+   "approach": [
+    "Scope"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "incision": "大哥/柏達：\n第一個洞打直的，transumbilicus"
+   }
+  },
+  {
+   "id": "c40",
+   "doctorIds": [
+    "d20"
+   ],
+   "procedureId": "p13",
+   "approach": [
+    "Scope"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "instrument": "約翰喜歡endoBipolar（且喜歡retrograde做，最後再斷cystic duct）"
+   }
+  },
+  {
+   "id": "c41",
+   "doctorIds": [
+    "d02"
+   ],
+   "procedureId": "p13",
+   "approach": [
+    "Scope"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "steps": "健暉\n送刀前打的ICG 15mg，抽稀釋液5ml，稀釋後抽3ml，叫刀前打\n老師喜歡開四個洞，用三個洞老師會說：「我們住院醫師都好厲害，可以用三個洞就開LC！」 （但我忘了打在哪里，下次補上）\n要放右肝下CWV"
+   }
+  },
+  {
+   "id": "c42",
+   "doctorIds": [
+    "d07"
+   ],
+   "procedureId": "p13",
+   "approach": [
+    "Scope"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "incision": "柏居打洞（三個12-5-5）\n[[img:lc-3]]\n鏡子位置=肚臍：希望離xyphoid一個手（手掌+手指）->再來決定打肚臍上面還是下面\n右手port：midline（hepatoduodenal lig的位置）和subcostal margin的中分線，在這條中分線上從scope看肝臟下緣的地方打洞\n左手port：scope往膽囊方向看，在這個scope的軸線往lateral的地方選\n注：以前開四個洞的時候是1+2+綠星星（肚臍高度和ant axillary midline交叉點+和2的中點），現在三個洞的左手port就區這兩個的中間區域"
    }
   }
  ],

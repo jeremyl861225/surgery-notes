@@ -193,6 +193,11 @@
     return h + '</section>';
   }
 
+  function frame(href, label, hint, body) {
+    return '<div class="genbox"><a class="genbox-tag" href="' + href + '">' + label +
+      (hint ? '<em>' + esc(hint) + '</em>' : '') + '</a>' + body + '</div>';
+  }
+
   function editBtn(href) {
     return '<a class="edit-b" href="' + href + '">' + icon('pencil') + '編輯</a>';
   }
@@ -234,31 +239,75 @@
       icon('plus') + '幫這位醫師新增筆記</a>';
   }
 
-  function viewProc(id) {
+  function viewProc(id, only) {
     var p = idx.proc[id];
     if (!p) return notFound();
-    var cs = idx.byProc[id] || [];
+    var cs = (idx.byProc[id] || []).slice();
+
+    var docIds = [];
+    cs.forEach(function (c) {
+      c.doctorIds.forEach(function (i) { if (docIds.indexOf(i) < 0) docIds.push(i); });
+    });
+    docIds.sort(function (a, b) {
+      return (idx.doc[a] || {}).name.localeCompare((idx.doc[b] || {}).name, 'zh-Hant');
+    });
+    if (only && docIds.indexOf(only) < 0) only = null;
+
     var h = '<header class="detail-hd">' + editBtn('#/edit/p/' + p.id) +
       '<p class="detail-kind">術式</p>' +
       '<h1 class="detail-name">' + esc(p.key) + '</h1>' +
       '<p class="detail-full">' + esc(procFull(p)) + '</p></header>';
-    // 通則永遠顯示，而且排在醫師清單之上——沒寫的時候它就是「去寫一則」的入口
-    h += genBlock('術式通則', '不分哪位醫師都適用', p.general, '#/edit/p/' + p.id);
-    h += '<section class="sect"><h2 class="sect-hd">誰開這台刀</h2>';
-    if (!cs.length) h += '<p class="empty-row">還沒有人寫這台刀的筆記。</p>';
-    else {
-      h += '<ul class="rows">';
-      cs.forEach(function (c) {
-        h += '<li><a class="row" href="#/c/' + c.id + '">' +
-          '<span class="row-main"><span class="row-name">' +
-          esc(c.doctorIds.map(function (i) { return (idx.doc[i] || {}).name || '？'; }).join('、')) +
-          '</span></span><span class="row-tags">' +
-          (c.approach || []).map(function (a) { return '<i>' + esc(a) + '</i>'; }).join('') +
-          '</span></a></li>';
-      });
-      h += '</ul>';
+
+    // 開刀者做成篩選鈕。再按一次同一個人就取消，回到全部。
+    if (docIds.length > 1) {
+      h += '<div class="filters" role="group" aria-label="依醫師篩選">' +
+        '<a class="fchip' + (only ? '' : ' is-on') + '" href="#/p/' + p.id + '">全部</a>' +
+        docIds.map(function (i) {
+          var on = i === only;
+          return '<a class="fchip' + (on ? ' is-on' : '') + '" href="#/p/' + p.id +
+            (on ? '' : '/' + i) + '">' + esc((idx.doc[i] || {}).name) + '</a>';
+        }).join('') + '</div>';
     }
-    return h + '</section><a class="addbtn" href="#/new/c/-/' + p.id + '">' +
+
+    // 一個欄位一段：術式通則在前，接著各醫師的通則與卡片內容，都用淡框標名字。
+    // 醫師通則一定要一起放進來——不放的話，葉啓娟的「手控電刀」被歸納到通則後
+    // 這一頁就會顯示成她沒有器械偏好，結論剛好相反。
+    var body = '', any = false;
+    D.fields.forEach(function (f, k) {
+      var box = '';
+      if ((p.general || {})[f.key]) {
+        box += frame('#/edit/p/' + p.id, '術式通則', '不分哪位醫師都適用',
+          rich(p.general[f.key], f.zh));
+      }
+      docIds.forEach(function (i) {
+        if (only && i !== only) return;
+        var d = idx.doc[i] || { id: '', name: '？', general: {} };
+        if ((d.general || {})[f.key]) {
+          box += frame('#/d/' + d.id, esc(d.name) + ' 通則', '他開任何一台刀都這樣',
+            rich(d.general[f.key], f.zh));
+        }
+        cs.forEach(function (c) {
+          // 一台刀兩個人開時只掛在第一位名下，免得同一段出現兩次；
+          // 但篩選某位醫師時，只要他在名單上就要出現。
+          var mine = only ? c.doctorIds.indexOf(only) >= 0 : c.doctorIds[0] === i;
+          if (!mine || !c.fields[f.key]) return;
+          box += frame('#/c/' + c.id,
+            esc(c.doctorIds.map(function (j) { return (idx.doc[j] || {}).name; }).join('、')),
+            '', rich(c.fields[f.key], f.zh));
+        });
+      });
+      if (!box) return;
+      any = true;
+      body += '<div class="field" style="--i:' + k + '">' +
+        '<dt><span class="f-zh">' + esc(f.zh) + '</span>' +
+        (f.en ? '<span class="f-en">' + esc(f.en) + '</span>' : '') + '</dt>' +
+        '<dd>' + box + '</dd></div>';
+    });
+
+    h += any ? '<dl class="fields">' + body + '</dl>'
+             : '<p class="empty-row">' + (only ? '這位醫師這台刀還沒有內容。'
+                                               : '還沒有人寫這台刀的筆記。') + '</p>';
+    return h + '<a class="addbtn" href="#/new/c/-/' + p.id + '">' +
       icon('plus') + '新增這台刀的筆記</a>';
   }
 
@@ -297,11 +346,6 @@
       });
       return out;
     }
-    function frame(href, label, hint, body) {
-      return '<div class="genbox"><a class="genbox-tag" href="' + href + '">' + label +
-        '<em>' + esc(hint) + '</em></a>' + body + '</div>';
-    }
-
     h += '<dl class="fields">';
     D.fields.forEach(function (f, i) {
       var v = c.fields[f.key];
@@ -461,7 +505,7 @@
     if (!h.length) return { tab: 'doctors' };
     if (h[0] === 'edit' || h[0] === 'new') return { mode: h[0], kind: h[1], id: h[2], id2: h[3] };
     if (h[0] === 'd') return { tab: 'doctors', kind: 'd', id: h[1] };
-    if (h[0] === 'p') return { tab: 'procs', kind: 'p', id: h[1] };
+    if (h[0] === 'p') return { tab: 'procs', kind: 'p', id: h[1], sub: h[2] };
     if (h[0] === 'c') return { tab: 'card', kind: 'c', id: h[1] };
     if (h[0] === 'doctors') return { tab: 'doctors', w: h[1] };
     return { tab: TABS.map(function (t) { return t.id; }).indexOf(h[0]) >= 0 ? h[0] : 'doctors' };
@@ -475,7 +519,7 @@
     try {
       if (r.mode) body = Edit.view(r);
       else if (r.kind === 'd') body = viewDoctor(r.id);
-      else if (r.kind === 'p') body = viewProc(r.id);
+      else if (r.kind === 'p') body = viewProc(r.id, r.sub);
       else if (r.kind === 'c') body = viewCard(r.id);
       else if (r.tab === 'procs') body = viewProcs();
       else if (r.tab === 'search') body = viewSearch();
