@@ -1,7 +1,7 @@
 {
  "format": "surgery-notes",
  "version": 1,
- "exportedAt": "2026-08-26",
+ "exportedAt": "2026-08-27",
  "meta": {
   "title": "外科手術筆記",
   "source": "一般外科住院醫師共享備忘錄「擺位共筆」",
@@ -68,9 +68,7 @@
  "approaches": [
   "Open",
   "Robotic",
-  "SP",
-  "Scope",
-  "Transoral"
+  "Scope"
  ],
  "doctors": [
   {
@@ -267,7 +265,7 @@
  "procedures": [
   {
    "id": "p01",
-   "key": "屁屁刀",
+   "key": "Anorectal surgery",
    "en": "Anorectal surgery",
    "zh": "肛門手術",
    "general": {}
@@ -309,9 +307,9 @@
   },
   {
    "id": "p07",
-   "key": "各種切胃",
-   "en": "Gastrectomy (assorted)",
-   "zh": "各種切胃",
+   "key": "Gastrectomy",
+   "en": "Gastrectomy",
+   "zh": "胃切除",
    "general": {}
   },
   {
@@ -323,7 +321,7 @@
   },
   {
    "id": "p09",
-   "key": "切肝",
+   "key": "Hepatectomy",
    "en": "Hepatectomy",
    "zh": "肝切除",
    "general": {}
@@ -391,7 +389,7 @@
   },
   {
    "id": "p18",
-   "key": "乳外+Mastectomy",
+   "key": "Mastectomy",
    "en": "Mastectomy",
    "zh": "乳房切除",
    "general": {

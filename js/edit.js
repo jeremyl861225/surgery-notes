@@ -66,6 +66,25 @@ window.Edit = (function () {
 
   /* ───────── 三種表單 ───────── */
 
+  function byKey(a, b) {
+    return a.key.localeCompare(b.key, 'en', { sensitivity: 'base' });
+  }
+
+  function procOptions(sel) {
+    return D().procedures.slice().sort(byKey).map(function (p) {
+      return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') +
+        '>' + esc(p.key) + '　' + esc(p.en) + '</option>';
+    }).join('');
+  }
+
+  // 預設清單 ＋ 這張卡已經有的。少了第二段的話，編輯 SP／Transoral 那兩張卡
+  // 會因為選項裡沒有而在存檔時把它們洗掉。
+  function appOptions(own) {
+    var all = D().approaches.slice();
+    own.forEach(function (a) { if (all.indexOf(a) < 0) all.push(a); });
+    return all;
+  }
+
   function viewDoctor(id) {
     var d = isNew ? { id: UI.uid('d'), name: '', empId: '', wards: [], general: {} }
       : idx().doc[id];
@@ -120,13 +139,17 @@ window.Edit = (function () {
           (c.doctorIds.indexOf(d.id) >= 0 ? ' checked' : '') + '><span>' + esc(d.name) +
           '</span></label>';
       }).join('') + '</div></div>' +
-      '<label class="f"><span>術式</span><select id="f-proc">' +
-      D().procedures.slice().sort(function (a, b) { return a.key.localeCompare(b.key); })
-        .map(function (p) {
-          return '<option value="' + p.id + '"' + (p.id === c.procedureId ? ' selected' : '') +
-            '>' + esc(p.key) + '　' + esc(p.en) + '</option>';
-        }).join('') + '</select></label>' +
-      checks('取徑', D().approaches, c.approach || [], 'f-app2', '例如 Transoral') +
+      '<label class="f"><span>術式</span><select id="f-proc">' + procOptions(c.procedureId) +
+      '</select></label>' +
+      '<button type="button" class="minib" id="newproc">' + icon('plus') + '新增術式</button>' +
+      '<div class="npbox" id="npbox" hidden>' +
+      '<input id="np-key" type="text" placeholder="縮寫，清單上顯示的名字（例如 LC）">' +
+      '<input id="np-en" type="text" placeholder="英文全名">' +
+      '<input id="np-zh" type="text" placeholder="中文名">' +
+      '<div class="btns"><button type="button" class="btn btn-primary" id="np-ok">建立並選用</button>' +
+      '<button type="button" class="btn" id="np-cancel">取消</button></div></div>' +
+      // 預設只給三個常用途徑；這張卡已經有的（SP、Transoral…）自動補進來，不會掉資料
+      checks('途徑', appOptions(c.approach || []), c.approach || [], 'f-app2', '例如 SP、Transoral') +
       fieldSet(c.fields || {}, true) +
       footer(!isNew) + '</form>';
   }
@@ -191,6 +214,25 @@ window.Edit = (function () {
         refreshImgRows();
       });
     }).catch(function (e) { UI.toast(e.message); });
+  }
+
+  // 在卡片表單裡直接建一個術式。不重畫整頁——重畫會把使用者已經填的內容清掉，
+  // 所以只把資料存進去、重建索引，再把下拉重新長出來並選好。
+  function addProc() {
+    var key = $('#np-key').value.trim();
+    if (!key) return UI.toast('縮寫不能空白。');
+    var np = {
+      id: UI.uid('p'), key: key,
+      en: $('#np-en').value.trim(), zh: $('#np-zh').value.trim(), general: {}
+    };
+    D().procedures.push(np);
+    Store.save().then(function () {
+      window.SN.reindex();
+      $('#f-proc').innerHTML = procOptions(np.id);
+      $('#npbox').hidden = true;
+      ['#np-key', '#np-en', '#np-zh'].forEach(function (i) { $(i).value = ''; });
+      UI.toast('已新增「' + key + '」，並選好了。');
+    }).catch(function (e) { UI.toast('存不起來：' + e.message); });
   }
 
   /* ───────── 存檔 ───────── */
@@ -348,6 +390,14 @@ window.Edit = (function () {
         refreshImgRows();
         return;
       }
+      if (e.target.closest('#newproc')) {
+        var box = $('#npbox');
+        box.hidden = !box.hidden;
+        if (!box.hidden) $('#np-key').focus();
+        return;
+      }
+      if (e.target.closest('#np-cancel')) { $('#npbox').hidden = true; return; }
+      if (e.target.closest('#np-ok')) { addProc(); return; }
       if (e.target.closest('#save')) { save(r); return; }
       if (e.target.closest('#del')) { remove(r); return; }
       if (e.target.closest('#cancel')) {

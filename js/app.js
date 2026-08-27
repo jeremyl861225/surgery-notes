@@ -32,6 +32,10 @@
     D.fields.forEach(function (x) { if (x.key === k) f = x; });
     return f || { key: k, zh: k, en: '' };
   }
+  // 依字母排序，大小寫不計（共筆有 scope gastrectomy 這種小寫開頭的）
+  function byKey(a, b) {
+    return a.key.localeCompare(b.key, 'en', { sensitivity: 'base' });
+  }
   function procFull(p) { return p.en + (p.zh && p.zh !== p.en ? ' · ' + p.zh : ''); }
   function docName(d) {
     return esc(d.name) + (d.empId ? '<span class="emp">' + esc(d.empId) + '</span>' : '');
@@ -79,12 +83,9 @@
   }
 
   function viewProcs() {
-    var list = D.procedures.slice().sort(function (a, b) {
-      return (idx.byProc[b.id] || []).length - (idx.byProc[a.id] || []).length ||
-        a.key.localeCompare(b.key);
-    });
+    var list = D.procedures.slice().sort(byKey);
     var h = '<h1 class="pane-title">術式</h1>' +
-      '<p class="pane-sub">' + D.procedures.length + ' 個術式，依有筆記的醫師人數排序</p>' +
+      '<p class="pane-sub">' + D.procedures.length + ' 個術式，依字母排序</p>' +
       '<ul class="rows rows-proc">';
     list.forEach(function (p) {
       var docs = [];
@@ -280,22 +281,35 @@
       (c.approach || []).map(function (a) { return chip(a, 'chip-app'); }).join('') +
       '</div></header>';
 
-    docs.forEach(function (d) {
-      if (Object.keys(d.general || {}).length) {
-        h += genBlock(d.name + ' 的通則', '他開任何一台刀都這樣', d.general, '#/edit/d/' + d.id);
+    // 通則不再獨立成兩大段，而是拆進各個欄位裡，用淡框跟這位醫師自己寫的分開。
+    // 這樣「擺位」底下就一次看得到：這台刀大家都怎麼擺、他自己怎麼擺。
+    function genFrames(key, label) {
+      var out = '';
+      if ((p.general || {})[key]) {
+        out += frame('#/p/' + p.id, esc(p.key) + ' 術式通則', '不分哪位醫師都適用',
+          rich(p.general[key], label));
       }
-    });
-    if (Object.keys(p.general || {}).length) {
-      h += genBlock(p.key + ' 的術式通則', '不分哪位醫師都適用', p.general, '#/edit/p/' + p.id);
+      docs.forEach(function (d) {
+        if ((d.general || {})[key]) {
+          out += frame('#/d/' + d.id, esc(d.name) + ' 通則', '他開任何一台刀都這樣',
+            rich(d.general[key], label));
+        }
+      });
+      return out;
+    }
+    function frame(href, label, hint, body) {
+      return '<div class="genbox"><a class="genbox-tag" href="' + href + '">' + label +
+        '<em>' + esc(hint) + '</em></a>' + body + '</div>';
     }
 
     h += '<dl class="fields">';
     D.fields.forEach(function (f, i) {
       var v = c.fields[f.key];
-      h += '<div class="field' + (v ? '' : ' is-empty') + '" style="--i:' + i + '">' +
+      var g = genFrames(f.key, f.zh);
+      h += '<div class="field' + (v || g ? '' : ' is-empty') + '" style="--i:' + i + '">' +
         '<dt><span class="f-zh">' + esc(f.zh) + '</span>' +
         (f.en ? '<span class="f-en">' + esc(f.en) + '</span>' : '') + '</dt>' +
-        '<dd>' + (v ? rich(v, f.zh) : '<p class="empty">共筆沒寫</p>') + '</dd></div>';
+        '<dd>' + g + (v ? rich(v, f.zh) : '<p class="empty">共筆沒寫</p>') + '</dd></div>';
     });
     h += '</dl>';
     if (c.updatedAt) {

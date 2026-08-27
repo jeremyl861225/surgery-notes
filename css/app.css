@@ -157,8 +157,13 @@ mark{background:var(--sig-soft);color:inherit}
   margin-bottom:14px}
 .detail-full .up{border-bottom:1px solid var(--rule2)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;height:21px;padding:0 8px;font-family:var(--f-se);
-  font-size:12px;letter-spacing:.05em;color:var(--ink2);border:1px solid var(--rule2)}
+/* Newsreader 的 descender 佔了 0.27em，只有數字與大寫的標籤（9A、Open）
+   在等距內距下會浮在框的上半部，量出來偏離中線 0.112em。所以底下的
+   .chip-ward／.chip-app 用不對稱內距把墨壓回視覺中線；中文標籤不需要。 */
+.chip{display:inline-flex;align-items:center;padding:.29em .62em;line-height:1;
+  font-family:var(--f-se);font-size:12px;letter-spacing:.05em;color:var(--ink2);
+  border:1px solid var(--rule2)}
+.chip-ward,.chip-app{padding:.404em .62em .18em}
 .chip-ward[data-ward="9A"]{color:var(--w9A)}
 .chip-ward[data-ward="9B"]{color:var(--w9B)}
 .chip-ward[data-ward="9C"]{color:var(--w9C)}
@@ -257,8 +262,11 @@ figcaption::first-letter{color:var(--sig)}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--sig)}
 .f .extra{margin-top:8px}
 .checks{display:flex;flex-wrap:wrap;gap:7px}
-.checks-doc{max-height:210px;overflow:auto;padding:2px;border:1px solid var(--rule);
-  background:var(--surf)}
+/* 用格線而不是 flex-wrap：flex 會讓每格寬度隨名字長短變動，右緣參差還留一大塊白。
+   也不要 max-height，捲動會把最後一列切成一半。 */
+.checks-doc{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;
+  padding:8px;border:1px solid var(--rule);background:var(--surf)}
+.checks-doc .ck{min-width:0;padding:0 10px}
 .ck{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;
   background:var(--surf);border:1px solid var(--rule2);font-size:14.5px;cursor:pointer}
 .ck input{width:16px;height:16px;accent-color:var(--sig);margin:0}
@@ -291,6 +299,26 @@ figcaption::first-letter{color:var(--sig)}
 .editbar{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 10px;padding-top:18px;
   border-top:1px solid var(--rule2)}
 .editbar #del{margin-left:auto}
+
+/* 卡片頁的通則：不再獨立成兩大段，而是拆進各欄位，用淡框跟這位醫師自己寫的分開 */
+.genbox{padding:11px 13px;border:1px solid var(--rule);background:var(--surf)}
+.genbox-tag{display:block;font-family:var(--f-se);font-size:11.5px;font-weight:600;
+  letter-spacing:.04em;color:var(--ink3);margin-bottom:6px}
+.genbox-tag em{font-weight:400;font-style:italic;margin-left:7px}
+.genbox-tag:active{color:var(--sig)}
+.genbox p{font-size:14.5px}
+.genbox .fig{margin:10px 0 0}
+.genbox>*+*{margin-top:9px}
+
+/* 在卡片表單裡直接建術式 */
+.npbox{margin-top:12px;padding:14px;border:1px solid var(--rule2);background:var(--surf)}
+.npbox[hidden]{display:none}
+.npbox input{width:100%;padding:11px 12px;background:var(--bg);border:1px solid var(--rule2);
+  outline:none;font-size:16px;-webkit-appearance:none;appearance:none}
+.npbox input+input{margin-top:8px}
+.npbox input:focus{border-color:var(--sig)}
+.npbox .btns{margin-top:12px}
+#newproc{margin-top:-8px}
 
 /* ── 燈箱／面板／浮動提示 ── */
 #lb{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;
