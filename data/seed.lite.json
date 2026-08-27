@@ -439,9 +439,9 @@
    "en": "Mastectomy",
    "zh": "乳房切除",
    "general": {
-    "position": "舉患側手 (肩胛下墊三角形被單/手肘下墊長方形被單）\n郭郭：肩高手平/俊P &其他：肩不用太高手高\n俊P &其他：要墊看護墊",
-    "instrument": "手控電刀 / SM做吸煙電刀加長電刀頭\n超音波：郭郭習慣先畫好位置再鋪單/俊P會包超音波上去",
-    "steps": "SLNB病人鋪單前確認訊號強度 -> 以決定是否需要patent blue或ICG\n關傷口：郭郭3-0 mono subcutaneous + 4-0 mono繡花/俊P & 雅雯4-0 mono subcutaneous + 5-0 nylon simple (全切的話用3-0加4-0)\n腋下傷口要多縫一層fascia\nSM放兩條CWV(胸前加腋下）\nALND腋下放一條CWV",
+    "position": "舉患側手 (肩胛下墊三角形被單/手肘下墊長方形被單）",
+    "instrument": "手控電刀 / SM做吸煙電刀加長電刀頭",
+    "steps": "SLNB病人鋪單前確認訊號強度 -> 以決定是否需要patent blue或ICG\n腋下傷口要多縫一層fascia\nSM放兩條CWV(胸前加腋下）\nALND腋下放一條CWV",
     "billing": "BCT / Partial mastectomy（良性）　63001B00 ／ 63002B00（單／雙側）\nNeedle localization　63011C00\nBCT for malignant（惡性）　63015B00\nBCT + SLNB　63012B00\nBCT + ALND　63013B00\nSM（benign）　63003B00 ／ 63004B00（單／雙側）\nSM（malignant）　63016B00\nSM + SLNB　63014B00\nDebridement　48004C00、48005C00…\nSLNB ／ ALND　63017B00 ／ 70205B00\nPort-A　47080B00\nMRM（SM + ALND）　63007B00 ／ 63008B00（單／雙側）\nCore needle biopsy（CNB）、Fine needle aspiration（FNA）　19007BMB\nEcho clipping（若無合併 FNA／CBNB）　19014CJS"
    }
   },
@@ -1311,6 +1311,67 @@
    "updatedAt": null,
    "fields": {
     "closure": "俊P：3-0 大針vicryl 固定底座，4-0 monocryl interrupt subcutaneous + 5-0 nylon simple"
+   }
+  },
+  {
+   "id": "c49",
+   "doctorIds": [
+    "d23"
+   ],
+   "procedureId": "p18",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "position": "肩高手平",
+    "instrument": "超音波：習慣先畫好位置再鋪單",
+    "closure": "3-0 mono subcutaneous + 4-0 mono繡花"
+   }
+  },
+  {
+   "id": "c50",
+   "doctorIds": [
+    "d24"
+   ],
+   "procedureId": "p18",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "position": "肩不用太高手高\n要墊看護墊",
+    "instrument": "超音波：會包超音波上去",
+    "closure": "4-0 mono subcutaneous + 5-0 nylon simple (全切的話用3-0加4-0)"
+   }
+  },
+  {
+   "id": "c51",
+   "doctorIds": [
+    "d25"
+   ],
+   "procedureId": "p18",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "position": "肩不用太高手高\n要墊看護墊",
+    "closure": "4-0 mono subcutaneous + 5-0 nylon simple (全切的話用3-0加4-0)"
+   }
+  },
+  {
+   "id": "c52",
+   "doctorIds": [
+    "d26"
+   ],
+   "procedureId": "p18",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "position": "肩不用太高手高\n要墊看護墊"
    }
   }
  ],
