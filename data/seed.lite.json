@@ -110,7 +110,9 @@
   {
    "name": "吳耀銘",
    "empId": "006680",
-   "wards": [],
+   "wards": [
+    "9B"
+   ],
    "id": "d21",
    "general": {}
   },
@@ -193,6 +195,15 @@
    }
   },
   {
+   "name": "楊雅雯",
+   "empId": "100089",
+   "wards": [
+    "8A"
+   ],
+   "id": "d25",
+   "general": {}
+  },
+  {
    "id": "d13",
    "name": "洪基翔",
    "empId": "018040",
@@ -208,6 +219,15 @@
    "wards": [
     "9A"
    ],
+   "general": {}
+  },
+  {
+   "name": "羅喬",
+   "empId": "018767",
+   "wards": [
+    "8A"
+   ],
+   "id": "d26",
    "general": {}
   },
   {
@@ -242,6 +262,15 @@
    "general": {}
   },
   {
+   "name": "郭文宏",
+   "empId": "003915",
+   "wards": [
+    "8A"
+   ],
+   "id": "d23",
+   "general": {}
+  },
+  {
    "id": "d18",
    "name": "陳坤源",
    "empId": "008296",
@@ -262,8 +291,19 @@
   {
    "name": "陳柏達",
    "empId": "100220",
-   "wards": [],
+   "wards": [
+    "9B"
+   ],
    "id": "d22",
+   "general": {}
+  },
+  {
+   "name": "黃俊升",
+   "empId": "000697",
+   "wards": [
+    "8A"
+   ],
+   "id": "d24",
    "general": {}
   },
   {
@@ -401,7 +441,8 @@
    "general": {
     "position": "舉患側手 (肩胛下墊三角形被單/手肘下墊長方形被單）\n郭郭：肩高手平/俊P &其他：肩不用太高手高\n俊P &其他：要墊看護墊",
     "instrument": "手控電刀 / SM做吸煙電刀加長電刀頭\n超音波：郭郭習慣先畫好位置再鋪單/俊P會包超音波上去",
-    "steps": "SLNB病人鋪單前確認訊號強度 -> 以決定是否需要patent blue或ICG\n關傷口：郭郭3-0 mono subcutaneous + 4-0 mono繡花/俊P & 雅雯4-0 mono subcutaneous + 5-0 nylon simple (全切的話用3-0加4-0)\n腋下傷口要多縫一層fascia\nSM放兩條CWV(胸前加腋下）\nALND腋下放一條CWV"
+    "steps": "SLNB病人鋪單前確認訊號強度 -> 以決定是否需要patent blue或ICG\n關傷口：郭郭3-0 mono subcutaneous + 4-0 mono繡花/俊P & 雅雯4-0 mono subcutaneous + 5-0 nylon simple (全切的話用3-0加4-0)\n腋下傷口要多縫一層fascia\nSM放兩條CWV(胸前加腋下）\nALND腋下放一條CWV",
+    "billing": "BCT / Partial mastectomy（良性）　63001B00 ／ 63002B00（單／雙側）\nNeedle localization　63011C00\nBCT for malignant（惡性）　63015B00\nBCT + SLNB　63012B00\nBCT + ALND　63013B00\nSM（benign）　63003B00 ／ 63004B00（單／雙側）\nSM（malignant）　63016B00\nSM + SLNB　63014B00\nDebridement　48004C00、48005C00…\nSLNB ／ ALND　63017B00 ／ 70205B00\nPort-A　47080B00\nMRM（SM + ALND）　63007B00 ／ 63008B00（單／雙側）\nCore needle biopsy（CNB）、Fine needle aspiration（FNA）　19007BMB\nEcho clipping（若無合併 FNA／CBNB）　19014CJS"
    }
   },
   {
@@ -448,9 +489,8 @@
    "zh": "單純乳房切除 ＋ 乳房保留手術",
    "general": {
     "position": "舉患側手靠在一疊綠單上（郭郭：上臂和軀幹約90度；俊P：上臂和軀幹約105度，貼膠帶要接近手腕），對側收手\n患側肩胛骨下方墊綠單（折成三角形，約兩塊）",
-    "incision": "",
     "instrument": "…",
-    "steps": "關傷口\n郭郭 3-0 monocryl interrupt subcutaneous + 4-0 monocryl continuous 繡花\n俊P 4-0 monocryl interrupt subcutaneous + 5-0 nylon simple\n羅喬 5-0 monocryl interrupt subcutaneous + 6-0 nylon simple\n楊雅雯 4-0 monocryl interrupt subcutaneous + 5-0 nylon simple/膠水\nPort A\n郭郭：3-0 monocryl 固定底座和縫 interrupt subcutaneous + 4-0 monocryl continuous 繡花\n俊P：3-0 大針vicryl 固定底座，4-0 monocryl interrupt subcutaneous + 5-0 nylon simple\n\nVacuum assisted買63001B00 benign BCT的碼"
+    "billing": "Vacuum assisted買63001B00 benign BCT的碼"
    }
   },
   {
@@ -1187,6 +1227,90 @@
    "updatedAt": null,
    "fields": {
     "incision": "柏居打洞（三個12-5-5）\n[[img:lc-3]]\n鏡子位置=肚臍：希望離xyphoid一個手（手掌+手指）->再來決定打肚臍上面還是下面\n右手port：midline（hepatoduodenal lig的位置）和subcostal margin的中分線，在這條中分線上從scope看肝臟下緣的地方打洞\n左手port：scope往膽囊方向看，在這個scope的軸線往lateral的地方選\n注：以前開四個洞的時候是1+2+綠星星（肚臍高度和ant axillary midline交叉點+和2的中點），現在三個洞的左手port就區這兩個的中間區域"
+   }
+  },
+  {
+   "id": "c43",
+   "doctorIds": [
+    "d23"
+   ],
+   "procedureId": "p24",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "郭郭 3-0 monocryl interrupt subcutaneous + 4-0 monocryl continuous 繡花"
+   }
+  },
+  {
+   "id": "c44",
+   "doctorIds": [
+    "d24"
+   ],
+   "procedureId": "p24",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "俊P 4-0 monocryl interrupt subcutaneous + 5-0 nylon simple"
+   }
+  },
+  {
+   "id": "c45",
+   "doctorIds": [
+    "d26"
+   ],
+   "procedureId": "p24",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "羅喬 5-0 monocryl interrupt subcutaneous + 6-0 nylon simple"
+   }
+  },
+  {
+   "id": "c46",
+   "doctorIds": [
+    "d25"
+   ],
+   "procedureId": "p24",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "楊雅雯 4-0 monocryl interrupt subcutaneous + 5-0 nylon simple/膠水"
+   }
+  },
+  {
+   "id": "c47",
+   "doctorIds": [
+    "d23"
+   ],
+   "procedureId": "p21",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "郭郭：3-0 monocryl 固定底座和縫 interrupt subcutaneous + 4-0 monocryl continuous 繡花"
+   }
+  },
+  {
+   "id": "c48",
+   "doctorIds": [
+    "d24"
+   ],
+   "procedureId": "p21",
+   "approach": [
+    "Open"
+   ],
+   "updatedAt": null,
+   "fields": {
+    "closure": "俊P：3-0 大針vicryl 固定底座，4-0 monocryl interrupt subcutaneous + 5-0 nylon simple"
    }
   }
  ],
