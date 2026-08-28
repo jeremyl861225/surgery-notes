@@ -5,6 +5,7 @@ window.Store = (function () {
   var NAME = 'surgery-notes', VER = 1;
   var db = null;
   var core = null;          // 除了 images 以外的全部內容
+  var meta = {};            // { seedVersion, dirty } — 判斷要不要自動更新預設內容
   var urls = {};            // id -> object URL，畫面上用這個
   var imgIds = [];
 
@@ -55,10 +56,26 @@ window.Store = (function () {
     });
   }
 
-  function persist() {
+  function persist(dirty) {
+    if (dirty) meta.dirty = true;
     var tx = db.transaction('kv', 'readwrite');
     tx.objectStore('kv').put(core, 'data');
+    tx.objectStore('kv').put(meta, 'meta');
     return done(tx);
+  }
+
+  // 一定要帶 cache-busting 的查詢字串：service worker 是 stale-while-revalidate，
+  // 光靠 fetch 的 cache 選項擋不住它先回舊的那一份。
+  function fetchSeed() {
+    return fetch('data/seed.json?v=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('讀不到預設檔 data/seed.json（HTTP ' + r.status + '）');
+        return r.json();
+      })
+      .then(function (j) {
+        if (!valid(j)) throw new Error('data/seed.json 格式不對');
+        return j;
+      });
   }
 
   function valid(j) {
@@ -101,6 +118,7 @@ window.Store = (function () {
     }
     imgs.forEach(function (im) { is.put(im); });
     ks.put(core, 'data');
+    ks.put(meta, 'meta');
     return done(tx).then(refreshUrls);
   }
 
@@ -108,30 +126,48 @@ window.Store = (function () {
     ready: function () {
       return openDb().then(function (d) {
         db = d;
-        return req(store('kv').get('data'));
-      }).then(function (saved) {
-        if (saved) { core = saved; return refreshUrls(); }
-        return fetch('data/seed.json', { cache: 'no-cache' })
-          .then(function (r) {
-            if (!r.ok) throw new Error('讀不到預設檔 data/seed.json（HTTP ' + r.status + '）');
-            return r.json();
-          })
-          .then(function (j) {
-            if (!valid(j)) throw new Error('data/seed.json 格式不對');
-            return write(j, 'replace');
-          });
+        return Promise.all([req(store('kv').get('data')), req(store('kv').get('meta'))]);
+      }).then(function (r) {
+        meta = r[1] || {};
+        if (r[0]) { core = r[0]; return refreshUrls(); }
+        return fetchSeed().then(function (j) {
+          meta = { seedVersion: j.seedVersion || '', dirty: false };
+          return write(j, 'replace');
+        });
       });
     },
+
+    // App 只在 IndexedDB 是空的時候才讀 seed，所以之後 repo 更新了內容，
+    // 裝置上永遠看不到。開啟時比對指紋：沒改過就直接換掉，改過才問。
+    checkSeedUpdate: function () {
+      return fetch('data/version.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (v) {
+          if (!v || !v.seed || v.seed === meta.seedVersion) return null;
+          return { version: v.seed, counts: v.counts || {}, dirty: !!meta.dirty };
+        })
+        .catch(function () { return null; });     // 離線就當作沒有更新
+    },
+
+    applySeedUpdate: function (mode) {
+      return fetchSeed().then(function (j) {
+        meta = { seedVersion: j.seedVersion || '', dirty: mode !== 'replace' };
+        return write(j, mode);
+      });
+    },
+
+    seedVersion: function () { return meta.seedVersion || '—'; },
 
     get data() { return core; },
     imageUrl: function (id) { return urls[id] || null; },
     imageCount: function () { return imgIds.length; },
-    save: persist,
+    save: function () { return persist(true); },
     valid: valid,
 
     putImage: function (id, mime, b64) {
       var tx = db.transaction('images', 'readwrite');
       tx.objectStore('images').put({ id: id, mime: mime, data: b64 });
+      meta.dirty = true;
       return done(tx).then(function () {
         imgIds.push(id);
         urls[id] = URL.createObjectURL(b64ToBlob(b64, mime));
@@ -183,12 +219,17 @@ window.Store = (function () {
       return s;
     },
 
-    importData: function (j, mode) { return write(j, mode); },
+    importData: function (j, mode) {
+      meta.dirty = true;                  // 使用者自己的檔，之後有新預設內容要問過再換
+      if (j.seedVersion) meta.seedVersion = j.seedVersion;
+      return write(j, mode);
+    },
 
     reset: function () {
-      return fetch('data/seed.json', { cache: 'no-cache' })
-        .then(function (r) { return r.json(); })
-        .then(function (j) { return write(j, 'replace'); });
+      return fetchSeed().then(function (j) {
+        meta = { seedVersion: j.seedVersion || '', dirty: false };
+        return write(j, 'replace');
+      });
     }
   };
 })();

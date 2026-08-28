@@ -1,7 +1,7 @@
 {
  "format": "surgery-notes",
  "version": 1,
- "exportedAt": "2026-08-27",
+ "exportedAt": "2026-08-28",
  "meta": {
   "title": "外科手術筆記",
   "source": "一般外科住院醫師共享備忘錄「擺位共筆」",
@@ -1375,5 +1375,6 @@
    }
   }
  ],
- "images": []
+ "images": [],
+ "seedVersion": "a595711c2711"
 }

@@ -397,7 +397,10 @@
       '臨床決策請依當台刀的實際情況與主治醫師指示。</p>' +
       '<p class="set-note">原共筆中 27 張刀房實拍照片含可辨識的病人影像，未收錄，' +
       '在內文中以一行說明標示。</p>' +
-      '<p class="set-meta" id="ver"></p></section>';
+      '<p class="set-meta" id="ver"></p>' +
+      '<p class="set-meta">預設內容版本 ' + esc(Store.seedVersion()) + '</p>' +
+      '<div class="btns"><button class="btn" type="button" id="do-check">檢查預設內容更新</button></div>' +
+      '</section>';
   }
 
   /* 匯入：先把會發生什麼事講清楚，再讓使用者選 */
@@ -552,6 +555,38 @@
     if (r.tab === 'search' && !r.kind) { var q = $('#q'); if (q) q.focus(); }
   }
 
+  /* ───────── 預設內容有新版時 ───────── */
+
+  // 沒動過這台裝置上的內容就直接換掉（本來就只是預設檔的複本，換掉不會損失什麼）；
+  // 動過才問，而且預設建議「合併」——自己寫的東西一定留著。
+  function seedUpdate() {
+    Store.checkSeedUpdate().then(function (u) {
+      if (!u) return;
+      var n = u.counts || {};
+      var line = (n.doctors || '?') + ' 位醫師 · ' + (n.procedures || '?') + ' 個術式 · ' +
+        (n.cards || '?') + ' 張筆記';
+      if (!u.dirty) {
+        return Store.applySeedUpdate('replace').then(function () {
+          reindex(); render(); UI.toast('預設內容已更新：' + line);
+        });
+      }
+      openSheet('預設內容有新版',
+        '<p class="sheet-note">線上的預設內容更新了（' + esc(line) + '）。' +
+        '你在這台裝置上改過東西，所以先問你一聲。</p>' +
+        '<p class="sheet-note"><b>合併</b>＝同一筆以新版為準覆蓋，你自己新增的保留下來。<br>' +
+        '<b>取代全部</b>＝丟掉這台裝置上的全部，只留新版。</p>',
+        [{ label: '合併', cls: 'btn-primary', fn: function () { doSeedUpdate('merge', line); } },
+         { label: '取代全部', cls: 'btn-danger', fn: function () { doSeedUpdate('replace', line); } }]);
+    });
+  }
+
+  function doSeedUpdate(mode, line) {
+    closeSheet();
+    Store.applySeedUpdate(mode).then(function () {
+      reindex(); render(); UI.toast('已更新：' + line);
+    }).catch(function (e) { UI.toast('更新失敗：' + e.message); });
+  }
+
   /* ───────── 啟動 ───────── */
 
   function boot() {
@@ -579,6 +614,12 @@
       if (s) { applyTheme(s.dataset.theme); return; }
       if (e.target.closest('#do-export')) { exportFile(); return; }
       if (e.target.closest('#do-import')) { $('#file').click(); return; }
+      if (e.target.closest('#do-check')) {
+        Store.checkSeedUpdate().then(function (u) {
+          if (u) seedUpdate(); else UI.toast('已經是最新的預設內容。');
+        });
+        return;
+      }
       if (e.target.closest('#do-reset')) {
         openSheet('重設回預設內容？',
           '<p class="sheet-note">裝置上所有的修改與新增都會消失，回到 repo 裡的 ' +
@@ -625,6 +666,7 @@
       window.addEventListener('hashchange', render);
       render();
       document.body.classList.remove('booting');
+      seedUpdate();
     }).catch(function (e) {
       document.body.classList.remove('booting');
       $('#main').innerHTML = '<header class="detail-hd"><h1 class="detail-name">打不開資料</h1>' +
